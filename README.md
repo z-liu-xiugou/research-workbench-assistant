@@ -2,6 +2,8 @@
 
 [English](README_EN.md) · [安装与使用](docs/GETTING_STARTED.md) · [反馈问题](https://github.com/z-liu-xiugou/research-workbench-assistant/issues) · [参与讨论](https://github.com/z-liu-xiugou/research-workbench-assistant/discussions)
 
+[![tests](https://github.com/z-liu-xiugou/research-workbench-assistant/actions/workflows/tests.yml/badge.svg)](https://github.com/z-liu-xiugou/research-workbench-assistant/actions/workflows/tests.yml)
+
 **让 AI 对话结束后，科研进度仍然留在你自己的项目里。**
 
 面向研究生的本地科研记录助手，以 Codex Skill 形式使用：记录目标、进展、问题和下一步，在新对话中按需续接；文献笔记保存为 Markdown 和 JSON。

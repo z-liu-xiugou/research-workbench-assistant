@@ -1,6 +1,6 @@
 # Contributing
 
-感谢您关注 Research Workbench Assistant。项目目前处于 pre-alpha 阶段，最需要的是实际科研场景、数据模型反馈、小而可验证的实现和跨平台测试。
+感谢您关注 Research Workbench Assistant。项目目前有可安装的早期 alpha，最需要的是安装和续接反馈、小而可验证的改进与跨平台测试。
 
 ## 提交 Issue 前
 
@@ -21,8 +21,19 @@
 
 - 规划功能不能写成已实现；
 - AI 生成内容不能自动标记为人工确认；
-- `confirmed` 或 `in_progress` 状态必须包含证据；
+- `已确认` 必须包含证据；`进行中` 应说明正在做什么，不得将计划写成已经完成；
 - 候选文献、已获得全文、已生成笔记和人工已读必须分开记录；
 - 不接受绕过付费墙、验证码、机构权限或网站访问限制的实现。
 
 提交贡献即表示您同意按照仓库的 Apache-2.0 许可证提供该贡献。
+
+## 本地验证
+
+Python 3.10+，不需要安装第三方包。在仓库根目录运行：
+
+```powershell
+python -X utf8 -m unittest discover -s tests -v
+git diff --check
+```
+
+源代码入口是 skills/research-workbench/scripts/workbench.py，记录约定见同一 Skill 下 references/records.md。修改结构时同时更新校验器、视图、示例和测试。测试必须使用临时目录与虚构资料，不能依赖维护者的私有副本。

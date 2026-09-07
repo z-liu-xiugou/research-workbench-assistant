@@ -16,19 +16,16 @@
 
 ## D-003 首个交付形态
 
-- 候选 A：Python 命令行工具 + Codex Skills；
-- 候选 B：仅 Codex Plugin；
-- AI建议：先做可独立测试的 Python 核心，再用 Plugin 分发多个 Skills。
+- 首版已采用自包含 Codex Skill + Python 标准库命令行工具，依据用户要求社区可以在本地 Codex 使用。
+- 插件商店打包与上架留待后续，不是当前安装前提。
 
 ## D-004 首批支持系统
 
-- 候选：先保证 Windows，再补 Linux；或从第一版开始双平台 CI。
-- AI建议：开发环境继续使用 Windows，但从 v0.1 起建立 Windows/Linux CI，避免把绝对路径带入设计。
+- 首版已配置 Windows/Linux、Python 3.10/3.12 四组 CI，结果以 GitHub Actions 为准。macOS 尚未运行 CI。
 
 ## D-005 模型接口
 
-- 待确认首版是否只支持 OpenAI，还是同时保留其他模型提供方适配接口。
-- AI建议：首版实现 OpenAI，内部接口保持可替换，但不要同时维护多个未经测试的后端。
+- 首版不单独连接模型 API；利用用户已有 Codex，脚本只做本地记录操作。多模型后端仍为候选。
 
 ## D-006 文献检索来源
 
@@ -37,5 +34,4 @@
 
 ## D-007 数据存储
 
-- 候选：纯 JSONL；JSONL + SQLite；JSONL + 图数据库。
-- AI建议：v0.1 使用 JSON/JSONL 和可重建索引，稳定后再评估 SQLite；首版不引入图数据库。
+- 首版已采用独立 JSON 事件 + 可重建 Markdown/JSON 视图，不引入数据库。替代修订保留旧事件，详细约定见 skills/research-workbench/references/records.md。
