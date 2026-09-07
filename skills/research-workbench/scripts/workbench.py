@@ -1,0 +1,260 @@
+"""本地科研记录工具；仅使用 Python 标准库，不发送网络请求。"""
+import argparse
+from contextlib import contextmanager
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+import re
+import sys
+import tempfile
+import uuid
+
+VERSION = "0.1.0a1"
+STATUSES = ("已确认", "进行中", "计划中", "候选方案", "待确认", "AI建议")
+KINDS = ("progress", "task", "decision", "issue", "experiment", "material", "checkpoint", "paper")
+
+
+def encode(value):
+    return json.dumps(value, ensure_ascii=False, indent=2) + "\n"
+
+
+def read_json(path):
+    return json.loads(path.read_text(encoding="utf-8-sig"))
+
+
+def atomic_write(path, content):
+    """先写临时文件，再替换目标；失败时旧文件仍然存在。"""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(prefix=".rwa-", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as stream:
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+def bounded(root, relative):
+    path = root / relative
+    if not path.resolve().is_relative_to(root.resolve()):
+        raise ValueError("路径越出工作台边界：" + relative)
+    return path
+
+
+@contextmanager
+def locked(root):
+    path = bounded(root, ".write.lock")
+    try:
+        fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except FileExistsError:
+        raise ValueError("工作台正在写入或上次异常退出留下 .write.lock；确认没有写入进程后再移走锁文件。") from None
+    try:
+        os.close(fd)
+        yield
+    finally:
+        path.unlink()
+
+
+def required_text(data, key):
+    if not isinstance(data.get(key), str) or not data[key].strip():
+        raise ValueError("缺少非空文本字段：" + key)
+
+
+def validate(data):
+    if not isinstance(data, dict):
+        raise ValueError("记录必须是 JSON 对象")
+    allowed = {"kind", "status", "title", "body", "evidence", "next_step", "paper", "supersedes"}
+    if set(data) - allowed:
+        raise ValueError("未知字段：" + ", ".join(sorted(set(data) - allowed)))
+    for key in ("kind", "status", "title", "body"):
+        required_text(data, key)
+    if data["kind"] not in KINDS or data["status"] not in STATUSES:
+        raise ValueError("无效的 kind 或 status")
+    evidence = data.get("evidence", [])
+    if not isinstance(evidence, list) or any(not isinstance(x, str) or not x.strip() for x in evidence):
+        raise ValueError("evidence 必须是非空字符串组成的数组")
+    if data["status"] == "已确认" and not evidence:
+        raise ValueError("已确认记录必须提供 evidence；工具不替用户判断证据真实性")
+    for key in ("next_step", "supersedes"):
+        if key in data:
+            required_text(data, key)
+    if data["kind"] == "checkpoint":
+        required_text(data, "next_step")
+    if data["kind"] == "paper":
+        paper = data.get("paper")
+        if not isinstance(paper, dict):
+            raise ValueError("文献记录必须有 paper 对象")
+        if set(paper) != {"source", "reading_basis", "summary", "limitations"}:
+            raise ValueError("paper 字段必须为 source/reading_basis/summary/limitations")
+        for key in paper:
+            required_text(paper, key)
+        if paper["reading_basis"] not in ("metadata", "abstract", "full_text"):
+            raise ValueError("reading_basis 必须为 metadata、abstract 或 full_text")
+    elif "paper" in data:
+        raise ValueError("只有 paper 类型可包含 paper 字段")
+
+
+def load(root):
+    config = read_json(bounded(root, "config.json"))
+    if not isinstance(config, dict) or config.get("schema_version") != 1:
+        raise ValueError("不支持的工作台 schema_version")
+    required_text(config, "name")
+    rows = []
+    for path in sorted(bounded(root, "events").glob("*.json")):
+        row = read_json(bounded(root, "events/" + path.name))
+        if not isinstance(row, dict) or set(row) != {"id", "created_at", "schema_version", "record"}:
+            raise ValueError("无效事件：" + path.name)
+        if row["schema_version"] != 1 or row["id"] != path.stem or not re.fullmatch(r"[0-9a-f]{32}", row["id"]):
+            raise ValueError("无效事件标识：" + path.name)
+        datetime.fromisoformat(row["created_at"])
+        validate(row["record"])
+        rows.append(row)
+    rows.sort(key=lambda row: (row["created_at"], row["id"]))
+    known = set()
+    replaced = set()
+    for row in rows:
+        previous = row["record"].get("supersedes")
+        if previous and (previous not in known or previous in replaced):
+            raise ValueError("supersedes 必须指向尚未被替代的历史记录")
+        if previous:
+            replaced.add(previous)
+        known.add(row["id"])
+    return config, rows
+
+
+def current(rows):
+    replaced = {row["record"].get("supersedes") for row in rows}
+    return [row for row in rows if row["id"] not in replaced]
+
+
+def section(row):
+    data = row["record"]
+    result = f"## [{data['status']}] {data['title']}\n\n{data['body']}\n\n"
+    result += f"类型：{data['kind']} · ID：{row['id']} · UTC：{row['created_at']}\n\n"
+    if data.get("next_step"):
+        result += "下一步：" + data["next_step"] + "\n\n"
+    if data.get("evidence"):
+        result += "证据（引用不等于已核验）：\n\n" + "\n".join("- " + x for x in data["evidence"]) + "\n\n"
+    if "paper" in data:
+        paper = data["paper"]
+        result += f"来源：{paper['source']}\n\n阅读依据：{paper['reading_basis']}\n\n摘要笔记：{paper['summary']}\n\n局限：{paper['limitations']}\n\n人工阅读状态：未由工具确认\n\n"
+    return result
+
+
+def views(config, rows):
+    banner = "> 自动生成，请通过 record 追加或修订；手写内容请放到 PERSONAL_NOTES.md。\n\n"
+    live = current(rows)
+    checkpoints = [row for row in live if row["record"]["kind"] == "checkpoint"]
+    active = section(checkpoints[-1]) if checkpoints else "尚无断点，请记录当前目标和下一步。\n\n"
+    active += "最近进展（最多 5 条；完整记录见 CURRENT_STATUS.md 和 WORKLOG.md）：\n\n"
+    active += "".join(section(row) for row in live[-5:] if row["record"]["kind"] != "checkpoint")
+    result = {
+        "ACTIVE_CONTEXT.md": "# " + config["name"] + "：续接断点\n\n" + banner + active,
+        "CURRENT_STATUS.md": "# 当前记录\n\n" + banner + "".join(section(row) for row in live),
+        "WORKLOG.md": "# 历史记录（含被替代版本）\n\n" + banner + "".join(section(row) for row in rows),
+        "LEDGERS.md": "# 分类台账\n\n" + banner + "".join("# " + kind + "\n\n" + "".join(section(row) for row in live if row["record"]["kind"] == kind) for kind in KINDS),
+    }
+    for row in rows:
+        if row["record"]["kind"] == "paper":
+            result["notes/" + row["id"] + ".md"] = banner + section(row)
+            result["notes/" + row["id"] + ".json"] = encode(row)
+    return result
+
+
+def render(root):
+    config, rows = load(root)
+    outputs = views(config, rows)
+    # 写入前先检查所有路径，防止外部符号链接导致部分越界写入。
+    paths = {name: bounded(root, name) for name in outputs}
+    for name, content in outputs.items():
+        atomic_write(paths[name], content)
+
+
+def initialize(root, name):
+    if not name.strip():
+        raise ValueError("项目名称不能为空")
+    root.mkdir(parents=True, exist_ok=False)
+    (root / "events").mkdir()
+    atomic_write(root / "config.json", encode({"schema_version": 1, "name": name}))
+    atomic_write(root / ".gitignore", "*\n!.gitignore\n")
+    atomic_write(root / "PERSONAL_NOTES.md", "# 手写笔记\n\n这个文件不会被工具重新生成。\n")
+    atomic_write(root / "PROJECT_MANUAL.md", "# 项目约定\n\n在这里填写范围、证据规则和资料位置；工具不会覆盖本文件。\n")
+    render(root)
+
+
+def record(root, data):
+    validate(data)
+    with locked(root):
+        _, rows = load(root)
+        previous = data.get("supersedes")
+        if previous and previous not in {row["id"] for row in current(rows)}:
+            raise ValueError("supersedes 必须指向当前有效记录的 ID")
+        row = {"schema_version": 1, "id": uuid.uuid4().hex,
+               "created_at": datetime.now(timezone.utc).isoformat(), "record": data}
+        atomic_write(bounded(root, "events/" + row["id"] + ".json"), encode(row))
+        # 事件已保存；如果视图失败，提示 ID，避免重试造成重复事件。
+        try:
+            render(root)
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            raise ValueError(f"记录已保存，ID={row['id']}；视图更新失败，请修复后执行 render，不要重复 record：{error}") from error
+        return row["id"]
+
+
+def audit(root):
+    config, rows = load(root)
+    stale = [name for name, value in views(config, rows).items()
+             if not bounded(root, name).exists() or bounded(root, name).read_text(encoding="utf-8") != value]
+    return {"events": len(rows), "current": len(current(rows)), "stale_views": stale,
+            "note": "仅检查结构与视图一致性，不代表已验证科研结论或证据真实性"}
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--version", action="version", version=VERSION)
+    commands = parser.add_subparsers(dest="command", required=True)
+    for command in ("init", "record", "resume", "render", "audit", "search"):
+        sub = commands.add_parser(command)
+        sub.add_argument("--root", type=Path, required=True, help="工作台目录，不是技能安装目录")
+        if command == "init":
+            sub.add_argument("--name", required=True)
+        elif command == "record":
+            sub.add_argument("--input", type=Path, required=True, help="UTF-8 JSON 记录")
+        elif command == "search":
+            sub.add_argument("--query", required=True)
+            sub.add_argument("--kind", choices=KINDS)
+    args = parser.parse_args(argv)
+    try:
+        root = args.root.resolve()
+        if args.command == "init":
+            initialize(root, args.name)
+            print("工作台已创建：" + str(root))
+        elif args.command == "record":
+            print(record(root, read_json(args.input)))
+        elif args.command == "render":
+            with locked(root):
+                render(root)
+            print("视图已重建；历史记录未修改。")
+        elif args.command == "resume":
+            # 轻量续接只读取断点；完整一致性检查按需 audit。
+            print(bounded(root, "ACTIVE_CONTEXT.md").read_text(encoding="utf-8"))
+        elif args.command == "audit":
+            report = audit(root)
+            print(encode(report))
+            return 1 if report["stale_views"] else 0
+        elif args.command == "search":
+            _, rows = load(root)
+            for row in current(rows):
+                if (not args.kind or row["record"]["kind"] == args.kind) and args.query.casefold() in encode(row).casefold():
+                    print(encode(row))
+        return 0
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        print("错误：" + str(error), file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

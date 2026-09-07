@@ -2,46 +2,22 @@
 
 更新时间：2026-09-07
 
-## 1. 当前阶段
+## 已实现
 
-阶段 0：独立复制、隐私隔离、开源规划和 pre-alpha 公开发布已完成；阶段 1 通用科研记忆核心尚未开始。
+首个可安装试用的本地 Codex Skill 与 Python 记录工具。使用独立 JSON 事件作为原始记录，自动生成工作台、分类台账和双格式文献笔记；支持追加修订、关键词检索与恢复。代码不依赖私有副本或第三方 Python 包。
 
-## 2. 当前主要目标
+## 验证边界
 
-在不修改原助手的前提下公开独立项目，建立社区维护入口，并确定 v0.1 的交付形态和通用数据模型。
+本地 Windows/Python 3.10 运行脚本及独立安装测试通过。符号链接测试可能因操作系统权限跳过；远端 CI 结果以 GitHub Actions 为准。Skill 静态校验通过不等于真实用户端对话验收。
 
-## 3. 功能状态
+## 计划中
 
-| 功能 | 状态 | 证据 |
-|---|---|---|
-| 原助手只读副本 | 已确认 | `_private_reference/SOURCE_MANIFEST.json` |
-| Git 隐私隔离 | 已确认 | `.gitignore` 与 `git check-ignore` 验证 |
-| 开源产品规划 | 已确认 | `docs/` 下规划文档 |
-| 通用工作台模板 | 已确认 | `templates/research-workbench/` |
-| 通用结构化记录核心 | 计划中 | `docs/OPEN_SOURCE_ROADMAP.md` |
-| 自动文献发现 | 计划中 | `docs/PRODUCT_SCOPE.md` |
-| 通用 Markdown/JSON 文献笔记 | 计划中 | `docs/MIGRATION_AUDIT.md` |
-| 文献记忆网络 | 候选方案 | `docs/ARCHITECTURE.md` |
-| 可安装插件 | 候选方案 | `docs/DECISIONS_REQUIRED.md` |
-| GitHub 公开仓库 | 已确认 | `https://github.com/z-liu-xiugou/research-workbench-assistant` |
-| v0.1 公开维护计划 | 已确认 | GitHub Milestone #1 和 Issue #1—#6 |
+自动检索、PDF 解析、DOI 去重、完整元数据、Zotero 接入、文献关系图谱。现有 Issues 的长期验收目标没有因最小 alpha 实现而全部关闭。
 
-## 4. 验证结果
+## 设计取舍
 
-- 复制文件数：37。
-- 源文件哈希变化：0。
-- 副本哈希差异：0。
-- 副本文献笔记测试：52 passed。
-- 已知私人标识公开文件扫描：0 个命中。
-- Git 主分支为 `main`，初始公开提交为 `c9daaa0`，远程仓库为 `origin`。
-- GitHub 仓库可见性为 `PUBLIC`，Issues 和 Discussions 已开启。
+首版采用自包含 Skill + Python 标准库，不新增模型 API。每个事件单独原子保存；多个视图不是整体事务，失败后 render 重建。历史存储不是防篡改存储。人工自由笔记与自动视图分离。
 
-## 5. 当前阻塞问题
+## 安全
 
-- v0.1 交付形态尚未确认；
-- 通用 Schema 尚未设计，暂不能安全迁移代码。
-
-## 6. 最近实际工作
-
-- 2026-09-07：完成独立目录核验、只读复制、私有隔离、规划文档、模板和验证。
-- 2026-09-07：创建 GitHub 公开仓库、推送初始提交并建立 v0.1 里程碑和 6 个维护 Issue。
+仅开发新开源仓库；私有副本不提交。安装器不覆盖同名技能，初始化不覆盖现有目录；所有示例虚构。

@@ -1,63 +1,90 @@
 # Research Workbench Assistant｜科研工作台助手
 
-[English](README_EN.md) | 简体中文
+[English](README_EN.md) · [安装与使用](docs/GETTING_STARTED.md) · [反馈问题](https://github.com/z-liu-xiugou/research-workbench-assistant/issues) · [参与讨论](https://github.com/z-liu-xiugou/research-workbench-assistant/discussions)
 
-> **Pre-alpha / 公开开发阶段**：当前仓库已经公开产品范围、架构、工作台模板和实施路线，但尚未提供可安装运行的通用助手。欢迎参与需求讨论和早期设计。
+**让 AI 对话结束后，科研进度仍然留在你自己的项目里。**
 
-这是一个开源科研助手项目，面向需要长期使用 AI 开展科研工作的研究生和科研人员。
+面向研究生的本地科研记录助手，以 Codex Skill 形式使用：记录目标、进展、问题和下一步，在新对话中按需续接；文献笔记保存为 Markdown 和 JSON。
 
-项目首先解决一个基础问题：AI 对话会结束，但科研项目不会结束。研究目标、已确认事实、当前进展、决策、问题、实验、文献和成果需要保存在本地、能够核验，并在下一次对话中按需恢复。
+> **v0.1.0-alpha.1：早期可用版。** 已提供可安装 Skill 和可运行的记录工具，适合个人试用。尚不是全自动科研平台，也不保证 AI 内容准确。
 
-## 当前状态
+## 五分钟开始
 
-- **已确认**：现有本地科研助手和工作台已经复制到 `_private_reference/`，作为只读迁移依据。
-- **已确认**：该目录被 Git 忽略，不属于未来公开内容。
-- **计划中**：建立通用的科研记忆核心、工作台模板和结构化记录模型。
-- **计划中**：迁移 PDF 校验、Markdown/JSON 双输出、去重、版本链和文献索引能力。
-- **候选方案**：将多个科研工作流 Skill 打包为可安装插件。
+需要：可用的本地 Codex、Python 3.10+、Git。脚本无第三方 Python 依赖，无需另填 API Key；Codex 本身仍需可用账户，可能产生使用费用。
 
-仓库地址：[github.com/z-liu-xiugou/research-workbench-assistant](https://github.com/z-liu-xiugou/research-workbench-assistant)
+在 PowerShell 或终端执行：
 
-- [提交功能建议或问题](https://github.com/z-liu-xiugou/research-workbench-assistant/issues)
-- [参与社区讨论](https://github.com/z-liu-xiugou/research-workbench-assistant/discussions)
-- [查看 v0.1 里程碑](https://github.com/z-liu-xiugou/research-workbench-assistant/milestone/1)
+```powershell
+git clone https://github.com/z-liu-xiugou/research-workbench-assistant.git
+cd research-workbench-assistant
+python -X utf8 scripts/install.py
+```
 
-## 希望解决的问题
+安装器只复制 research-workbench Skill 到用户 `.agents/skills`，不会覆盖已有同名技能，不触碰其他助手。未识别时重启 Codex。也可让 `$skill-installer` 从本仓库 `skills/research-workbench` 安装，两种方式选一种。[Codex 官方技能说明](https://learn.chatgpt.com/docs/build-skills)
 
-1. 每次新建 AI 对话时延续当前科研上下文，而不是重新解释整个项目。
-2. 区分已经确认、正在进行、计划、候选方案、待确认问题和 AI 建议。
-3. 自动记录实质工作、决策、问题、实验、材料和成果。
-4. 自动检索文献、维护候选队列，并在合法来源范围内获取或接收全文。
-5. 从论文生成可人工阅读的 Markdown 笔记和可检索的结构化 JSON 笔记。
-6. 建立论文、观点、方法、数据、实验和研究任务之间的记忆网络。
-7. 让所有记录能够审计、重建、迁移和由用户人工确认。
+在 Codex 打开**你自己的科研项目**，输入：
 
-## 项目边界
+```text
+$research-workbench 请为这个项目初始化科研工作台。先了解我的研究目标，不要编造进展，也不要覆盖已有记录。
+```
 
-本项目不会绕过付费墙或机构权限，不会自动公开用户论文和研究资料，也不会把 AI 生成内容自动标记为事实或“已经阅读”。
+完成一项工作后：
 
-## 规划文档
+```text
+$research-workbench 请保存这次实质进展、证据位置和下一步，并更新续接断点。还没确认的方案不要写成已确认。
+```
 
-- [产品范围](docs/PRODUCT_SCOPE.md)
-- [总体架构](docs/ARCHITECTURE.md)
-- [现有能力迁移审计](docs/MIGRATION_AUDIT.md)
-- [开源实施路线图](docs/OPEN_SOURCE_ROADMAP.md)
-- [隐私与发布检查清单](docs/PRIVACY_AND_RELEASE_CHECKLIST.md)
-- [OpenAI 开源计划准备路线](docs/OPENAI_OSS_APPLICATION_PLAN.md)
-- [社区启动与推广计划](docs/COMMUNITY_LAUNCH_PLAN.md)
-- [待用户决定事项](docs/DECISIONS_REQUIRED.md)
+新建对话时：
 
-## 本项目自己的开发工作台
+```text
+$research-workbench 继续上次研究。先读当前断点，只加载这次任务需要的资料。
+```
 
-本项目从初始化开始使用同一套科研记忆思想管理自身开发。当前断点见 [project-workbench/ACTIVE_CONTEXT.md](project-workbench/ACTIVE_CONTEXT.md)。
+## 现在能做什么
 
-## 公开前置条件
+| 能力 | 当前范围 |
+| --- | --- |
+| 初始化工作台 | 独立目录，拒绝覆盖现有目录 |
+| 跨对话续接 | 保存本地断点，由 Codex 在新任务中读取；不是云端聊天记忆 |
+| 进展和分类台账 | 进展、任务、决策、问题、实验、材料、断点、文献记录 |
+| 修订留痕 | 追加新记录并标记替代关系，旧版本保留 |
+| 文献笔记库 | 将 Codex/用户提供的笔记生成 Markdown + JSON；区分摘要与全文 |
+| 本地检索 | 当前有效记录的关键词搜索，可限定文献类型 |
+| 检查与恢复 | 校验结构、发现视图不一致、从历史记录重建 |
 
-项目采用 [Apache License 2.0](LICENSE)。当前允许公开讨论和共同设计，但尚未完成通用代码迁移，不能把规划中的功能描述为已经实现。
+**还不能做：** 独立自动联网搜论文、自动解析 PDF、DOI 去重、完整作者/年份元数据管理、Zotero 同步、后台定时跟踪、文献关系图谱、多人实时协作。Codex 可使用用户已有的检索/阅读工具辅助，但不是本仓库自带能力。
 
-## 参与项目
+## 不用 Codex 也能验证记录流程
 
-- 功能需求和使用场景：提交 Feature Request；
-- 架构、Schema 和科研工作流建议：参与 Discussions 或相关 Issue；
-- 代码贡献：先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)；
-- 安全或隐私问题：按照 [SECURITY.md](SECURITY.md) 私下报告。
+在仓库根目录运行，demo-workbench 必须尚不存在：
+
+```powershell
+python -X utf8 skills/research-workbench/scripts/workbench.py init --root demo-workbench --name "示例科研项目"
+python -X utf8 skills/research-workbench/scripts/workbench.py record --root demo-workbench --input examples/checkpoint.json
+python -X utf8 skills/research-workbench/scripts/workbench.py record --root demo-workbench --input examples/paper.json
+python -X utf8 skills/research-workbench/scripts/workbench.py resume --root demo-workbench
+python -X utf8 skills/research-workbench/scripts/workbench.py audit --root demo-workbench
+```
+
+打开 demo-workbench/ACTIVE_CONTEXT.md 和 demo-workbench/notes/ 查看结果。示例全部虚构，不可作为真实文献引用。详见 [使用指南](docs/GETTING_STARTED.md)。
+
+## 数据与安全
+
+- 脚本不联网、不上传记录；但使用 Codex 模型或外部工具不等于完全离线，请遵守课题数据要求。
+- 工作台默认忽略 Git 提交，但 .gitignore 不是隐私保证。已跟踪文件、强制添加、同步盘需要另外检查。
+- 证据字段保留来源，不自动证明结论；生成笔记不等于你已读过原文。
+- 自动生成页面请勿手改；自由笔记放 PERSONAL_NOTES.md。重要资料仍需自行备份。
+
+## 参与与维护
+
+欢迎先试用“初始化 → 记录 → 新对话续接”，反馈最容易丢失的研究上下文。报告问题请附系统、Python 版本、命令和脱敏错误，不上传真实论文或密钥。
+
+```powershell
+python -X utf8 -m unittest discover -s tests -v
+```
+
+[贡献说明](CONTRIBUTING.md) · [安全报告](SECURITY.md) · [变更记录](CHANGELOG.md) · [推广文案](docs/LAUNCH_POST.md) · [历史规划](docs/OPEN_SOURCE_ROADMAP.md)
+
+历史架构、迁移审计和路线图描述长期目标；当前能力以本 README、实际代码和测试为准。
+
+Apache-2.0 开源。非 OpenAI 官方项目；开源或获得 Star 不保证获得任何赞助计划资格。

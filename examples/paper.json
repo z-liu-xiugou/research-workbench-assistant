@@ -1,0 +1,13 @@
+{
+  "kind": "paper",
+  "status": "待确认",
+  "title": "虚构示例论文：科研记忆的组织（不可引用）",
+  "body": "仅用于演示入库，不对应真实发表的论文。",
+  "evidence": ["仓库内虚构示例，不是科研证据"],
+  "paper": {
+    "source": "虚构示例，无真实 DOI",
+    "reading_basis": "abstract",
+    "summary": "演示将可读笔记与结构化记录从同一来源输出。",
+    "limitations": "没有真实论文和实验，不可用于文献综述。"
+  }
+}

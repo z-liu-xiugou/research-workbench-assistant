@@ -1,44 +1,49 @@
 # Research Workbench Assistant
 
-> **Pre-alpha / open development:** This repository currently contains the product scope, architecture, reusable research-workbench templates, and implementation roadmap. It does not yet provide an installable assistant.
+[简体中文](README.md) · [Getting started (Chinese)](docs/GETTING_STARTED.md)
 
-Research Workbench Assistant is an open-source project for graduate students and researchers who use AI across long-running research projects.
+Keep research progress in your project after an AI conversation ends.
 
-Its core idea is simple: an AI conversation ends, but a research project does not. Research goals, confirmed facts, progress, decisions, unresolved questions, experiments, literature, and artifacts should remain local, auditable, and recoverable in the next conversation.
+**v0.1.0-alpha.1** is an early local Codex Skill with a standard-library Python helper. It creates a workbench, records progress and checkpoints, keeps revision history, searches local records, and renders supplied paper notes as Markdown and JSON. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
 
-## Problems we want to solve
+## Install
 
-- Resume research context in a new AI conversation without explaining the whole project again.
-- Separate confirmed facts, work in progress, plans, candidates, unresolved questions, and AI suggestions.
-- Maintain append-only work logs and structured ledgers for tasks, decisions, issues, experiments, and artifacts.
-- Discover literature, maintain screening queues, and respect copyright and access controls.
-- Generate synchronized human-readable Markdown notes and machine-readable JSON records.
-- Build an evidence-backed memory network connecting papers, claims, methods, datasets, experiments, and research tasks.
-- Rebuild readable workbench views from structured local records.
+Requires local Codex, Python 3.10+, and Git. No extra Python dependencies or API key for the helper; your Codex account and usage limits still apply.
 
-## Current status
+```sh
+git clone https://github.com/z-liu-xiugou/research-workbench-assistant.git
+cd research-workbench-assistant
+python -X utf8 scripts/install.py
+```
 
-- Product scope and architecture: available.
-- Generic research-workbench templates: available.
-- Migration baseline from a private working prototype: verified locally and excluded from Git.
-- Installable Python package: planned.
-- Literature discovery and research-memory graph: planned.
-- Codex Skills and plugin distribution: planned.
+Installs only research-workbench into your user .agents/skills directory and refuses to overwrite existing skills. For project-local installation, pass --dest /path/to/project/.agents/skills. Restart Codex if discovery does not refresh. See [official documentation](https://learn.chatgpt.com/docs/build-skills).
 
-See the [roadmap](docs/OPEN_SOURCE_ROADMAP.md) and [product scope](docs/PRODUCT_SCOPE.md). Most design documents are currently written in Chinese; English documentation will expand with implementation.
+Open your research project in Codex:
 
-- [Open an issue or propose a research workflow](https://github.com/z-liu-xiugou/research-workbench-assistant/issues)
-- [Join a discussion](https://github.com/z-liu-xiugou/research-workbench-assistant/discussions)
-- [Follow the v0.1 milestone](https://github.com/z-liu-xiugou/research-workbench-assistant/milestone/1)
+```text
+$research-workbench Initialize a research workbench here. Ask about my research goal; do not invent progress or overwrite existing records.
+```
 
-## Privacy and research integrity
+After meaningful work, ask it to save progress, evidence and a checkpoint. In a new conversation:
 
-The project will not publish users' papers, research data, private notes, credentials, or local paths. It will not bypass paywalls, authentication, CAPTCHAs, or institutional access controls. AI-generated notes are not treated as human-confirmed facts or as proof that a paper has been read.
+```text
+$research-workbench Resume from the saved checkpoint and only load evidence relevant to today's task.
+```
 
-## Contributing
+## Boundaries
 
-The project is in early design. Real graduate-research workflows, schema proposals, cross-platform requirements, and small implementation contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+No built-in online paper search, PDF parser, DOI deduplication, Zotero integration, scheduler, graph visualization or multi-user collaboration yet. Codex may use separately available tools, but they are not bundled here. Generated notes do not mean the user has read the paper.
 
-## License
+The helper makes no network requests. Using Codex or external tools is not fully offline AI. Workbenches ignore records in Git by default; this does not protect already-tracked files or forced additions. Back up important data.
 
-Apache License 2.0. See [LICENSE](LICENSE).
+Events are source records; views can be rebuilt. Correct records by appending a supersedes revision, not editing history. Keep manual notes in PERSONAL_NOTES.md; rendering overwrites generated views. See [record format](skills/research-workbench/references/records.md).
+
+## Test and contribute
+
+```sh
+python -X utf8 -m unittest discover -s tests -v
+```
+
+[Issues](https://github.com/z-liu-xiugou/research-workbench-assistant/issues) · [Discussions](https://github.com/z-liu-xiugou/research-workbench-assistant/discussions) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
+
+Apache-2.0. Independent project, not an official OpenAI product.
