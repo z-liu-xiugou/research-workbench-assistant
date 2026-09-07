@@ -4,7 +4,7 @@
 
 ## 1. 当前阶段
 
-阶段 0：独立复制、隐私隔离和开源规划已完成；阶段 1 通用科研记忆核心尚未开始。
+阶段 0：独立复制、隐私隔离、开源规划和 pre-alpha 公开发布已完成；阶段 1 通用科研记忆核心尚未开始。
 
 ## 2. 当前主要目标
 
@@ -23,6 +23,8 @@
 | 通用 Markdown/JSON 文献笔记 | 计划中 | `docs/MIGRATION_AUDIT.md` |
 | 文献记忆网络 | 候选方案 | `docs/ARCHITECTURE.md` |
 | 可安装插件 | 候选方案 | `docs/DECISIONS_REQUIRED.md` |
+| GitHub 公开仓库 | 已确认 | `https://github.com/z-liu-xiugou/research-workbench-assistant` |
+| v0.1 公开维护计划 | 已确认 | GitHub Milestone #1 和 Issue #1—#6 |
 
 ## 4. 验证结果
 
@@ -31,7 +33,8 @@
 - 副本哈希差异：0。
 - 副本文献笔记测试：52 passed。
 - 已知私人标识公开文件扫描：0 个命中。
-- Git 已初始化，分支为 `main`，尚无提交和远程地址。
+- Git 主分支为 `main`，初始公开提交为 `c9daaa0`，远程仓库为 `origin`。
+- GitHub 仓库可见性为 `PUBLIC`，Issues 和 Discussions 已开启。
 
 ## 5. 当前阻塞问题
 
@@ -41,3 +44,4 @@
 ## 6. 最近实际工作
 
 - 2026-09-07：完成独立目录核验、只读复制、私有隔离、规划文档、模板和验证。
+- 2026-09-07：创建 GitHub 公开仓库、推送初始提交并建立 v0.1 里程碑和 6 个维护 Issue。

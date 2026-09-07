@@ -27,6 +27,10 @@ Its core idea is simple: an AI conversation ends, but a research project does no
 
 See the [roadmap](docs/OPEN_SOURCE_ROADMAP.md) and [product scope](docs/PRODUCT_SCOPE.md). Most design documents are currently written in Chinese; English documentation will expand with implementation.
 
+- [Open an issue or propose a research workflow](https://github.com/z-liu-xiugou/research-workbench-assistant/issues)
+- [Join a discussion](https://github.com/z-liu-xiugou/research-workbench-assistant/discussions)
+- [Follow the v0.1 milestone](https://github.com/z-liu-xiugou/research-workbench-assistant/milestone/1)
+
 ## Privacy and research integrity
 
 The project will not publish users' papers, research data, private notes, credentials, or local paths. It will not bypass paywalls, authentication, CAPTCHAs, or institutional access controls. AI-generated notes are not treated as human-confirmed facts or as proof that a paper has been read.

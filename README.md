@@ -18,6 +18,10 @@
 
 仓库地址：[github.com/z-liu-xiugou/research-workbench-assistant](https://github.com/z-liu-xiugou/research-workbench-assistant)
 
+- [提交功能建议或问题](https://github.com/z-liu-xiugou/research-workbench-assistant/issues)
+- [参与社区讨论](https://github.com/z-liu-xiugou/research-workbench-assistant/discussions)
+- [查看 v0.1 里程碑](https://github.com/z-liu-xiugou/research-workbench-assistant/milestone/1)
+
 ## 希望解决的问题
 
 1. 每次新建 AI 对话时延续当前科研上下文，而不是重新解释整个项目。

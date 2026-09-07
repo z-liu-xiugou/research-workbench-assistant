@@ -11,7 +11,7 @@
 
 ## 当前子任务
 
-阶段 0“独立复制、隐私隔离和开源规划”已经完成；尚未开始迁移通用代码。
+阶段 0“独立复制、隐私隔离和开源规划”已经完成；公开 pre-alpha 仓库和 v0.1 维护入口已经建立，尚未开始迁移通用代码。
 
 ## 最近已确认
 
@@ -22,15 +22,18 @@
 - 已建立 README、产品范围、总体架构、迁移审计、路线图、隐私检查和申请准备文档。
 - 已建立通用工作台 Markdown 模板。
 - 副本文献笔记工具测试结果为 52 passed。
-- 当前 Git 仓库尚无提交，也没有连接远程仓库。
+- 已在 GitHub 账号 `z-liu-xiugou` 下发布公开仓库 `research-workbench-assistant`。
+- 初始公开提交为 `c9daaa0`。
+- 已开启 Issues 和 Discussions，关闭 Wiki，并设置 8 个仓库主题。
+- 已建立 `v0.1 Research memory core` 里程碑及 Issue #1—#6。
 
 ## 下一步
 
-1. 用户确认 v0.1 是否采用“Python 核心 + Codex Skills”的交付方式。
-2. 设计通用结构化记录 Schema 和配置文件。
-3. 先迁移路径安全、哈希、事件记录和 Markdown 视图生成能力。
-4. 建立 Windows/Linux CI 后再迁移文献笔记功能。
-5. 收集第一批社区使用场景和 Feature Request。
+1. 从 Issue #1 开始设计通用项目配置和结构化记录 Schema。
+2. 确认 v0.1 采用“Python 核心 + Codex Skills”的交付方式。
+3. 实现项目初始化、事件日志和 Markdown 视图重建。
+4. 建立 Windows/Linux CI 和隐私回归测试。
+5. 通过 Issues 和 Discussions 收集第一批社区科研场景。
 
 ## 当前未决问题
 
@@ -47,5 +50,6 @@
 - `docs/OPEN_SOURCE_ROADMAP.md`
 - `docs/DECISIONS_REQUIRED.md`
 - `docs/COMMUNITY_LAUNCH_PLAN.md`
+- `https://github.com/z-liu-xiugou/research-workbench-assistant/milestone/1`
 - `project-workbench/CURRENT_STATUS.md`
 - `project-workbench/DECISIONS_AND_ISSUES.md`
