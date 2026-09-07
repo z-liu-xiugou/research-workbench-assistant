@@ -1,0 +1,29 @@
+name: Feature request
+description: 提交真实科研场景和功能建议
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 科研场景
+      description: 研究者在什么情况下遇到什么具体问题？
+    validations:
+      required: true
+  - type: textarea
+    id: current_workaround
+    attributes:
+      label: 当前解决办法
+      description: 现在通常怎样处理？为什么不够用？
+  - type: textarea
+    id: outcome
+    attributes:
+      label: 期望结果
+      description: 输入是什么，最终应该产生什么可验证输出？
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: 数据、隐私或科研诚信风险
+      description: 是否涉及论文版权、私人数据、自动确认或外部账号？

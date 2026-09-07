@@ -1,0 +1,40 @@
+# 永远不提交：当前课题助手与科研工作台的本地参考副本
+_private_reference/
+
+# 本地配置与密钥
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets/
+
+# 用户自己的论文、数据和生成结果
+data/
+papers/
+library/
+outputs/
+*.pdf
+*.caj
+*.doc
+*.docx
+*.xls
+*.xlsx
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# IDE / operating system
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
