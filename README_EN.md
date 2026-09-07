@@ -4,7 +4,7 @@
 
 Keep research progress in your project after an AI conversation ends.
 
-**v0.1.0-alpha.1** is an early local Codex Skill with a standard-library Python helper. It creates a workbench, records progress and checkpoints, keeps revision history, searches local records, and renders supplied paper notes as Markdown and JSON. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
+**v0.1.0-alpha.2** is an early local Codex Skill with a standard-library Python helper. It creates a workbench, records progress and checkpoints, keeps revision history, searches local records, and renders supplied paper notes as Markdown and JSON. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
 
 ## Install
 
@@ -32,7 +32,7 @@ $research-workbench Resume from the saved checkpoint and only load evidence rele
 
 ## Boundaries
 
-No built-in online paper search, PDF parser, DOI deduplication, Zotero integration, scheduler, graph visualization or multi-user collaboration yet. Codex may use separately available tools, but they are not bundled here. Generated notes do not mean the user has read the paper.
+No built-in online paper search, PDF parser, Zotero integration, scheduler, graph visualization or multi-user collaboration yet. Codex may use separately available tools, but they are not bundled here. Generated notes do not mean the user has read the paper.
 
 The helper makes no network requests. Using Codex or external tools is not fully offline AI. Workbenches ignore records in Git by default; this does not protect already-tracked files or forced additions. Back up important data.
 
@@ -47,3 +47,5 @@ python -X utf8 -m unittest discover -s tests -v
 [Issues](https://github.com/z-liu-xiugou/research-workbench-assistant/issues) · [Discussions](https://github.com/z-liu-xiugou/research-workbench-assistant/discussions) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
 
 Apache-2.0. Independent project, not an official OpenAI product.
+
+Paper records now support optional authors, year, DOI, venue and tags. Duplicate current DOIs are rejected; supersedes revisions retain history. PAPER_INDEX.md lists current papers. DOI validation is local and syntactic, not an existence check. Papers without DOIs are not deduplicated.

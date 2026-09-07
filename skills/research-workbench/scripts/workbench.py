@@ -10,7 +10,7 @@ import sys
 import tempfile
 import uuid
 
-VERSION = "0.1.0a1"
+VERSION = "0.1.0a2"
 STATUSES = ("已确认", "进行中", "计划中", "候选方案", "待确认", "AI建议")
 KINDS = ("progress", "task", "decision", "issue", "experiment", "material", "checkpoint", "paper")
 
@@ -64,6 +64,14 @@ def required_text(data, key):
         raise ValueError("缺少非空文本字段：" + key)
 
 
+def normalize_doi(value):
+    """统一常见 DOI 输入形式；只校验格式，不联网验证存在性。"""
+    value = re.sub(r"^(?:https?://(?:dx\.)?doi\.org/|doi:\s*)", "", value.strip(), flags=re.I).lower()
+    if not re.fullmatch(r"10\.\d{4,9}/\S+", value):
+        raise ValueError("DOI 格式无效；未知 DOI 请省略该字段")
+    return value
+
+
 def validate(data):
     if not isinstance(data, dict):
         raise ValueError("记录必须是 JSON 对象")
@@ -88,10 +96,19 @@ def validate(data):
         paper = data.get("paper")
         if not isinstance(paper, dict):
             raise ValueError("文献记录必须有 paper 对象")
-        if set(paper) != {"source", "reading_basis", "summary", "limitations"}:
-            raise ValueError("paper 字段必须为 source/reading_basis/summary/limitations")
-        for key in paper:
+        required = {"source", "reading_basis", "summary", "limitations"}
+        optional = {"authors", "year", "doi", "venue", "tags"}
+        if not required <= set(paper) or set(paper) - required - optional:
+            raise ValueError("paper 缺少必填字段或包含未知字段")
+        for key in required | (set(paper) & {"doi", "venue"}):
             required_text(paper, key)
+        for key in ("authors", "tags"):
+            if key in paper and (not isinstance(paper[key], list) or any(not isinstance(x, str) or not x.strip() for x in paper[key])):
+                raise ValueError(key + " 必须为字符串数组")
+        if "year" in paper and (type(paper["year"]) is not int or not 1000 <= paper["year"] <= 9999):
+            raise ValueError("year 必须为四位整数年份")
+        if "doi" in paper:
+            normalize_doi(paper["doi"])
         if paper["reading_basis"] not in ("metadata", "abstract", "full_text"):
             raise ValueError("reading_basis 必须为 metadata、abstract 或 full_text")
     elif "paper" in data:
@@ -141,6 +158,10 @@ def section(row):
         result += "证据（引用不等于已核验）：\n\n" + "\n".join("- " + x for x in data["evidence"]) + "\n\n"
     if "paper" in data:
         paper = data["paper"]
+        for key, label in (("authors", "作者"), ("year", "年份"), ("doi", "DOI"), ("venue", "期刊/会议"), ("tags", "标签")):
+            if key in paper:
+                value = ", ".join(paper[key]) if isinstance(paper[key], list) else str(paper[key])
+                result += label + "：" + value + "\n\n"
         result += f"来源：{paper['source']}\n\n阅读依据：{paper['reading_basis']}\n\n摘要笔记：{paper['summary']}\n\n局限：{paper['limitations']}\n\n人工阅读状态：未由工具确认\n\n"
     return result
 
@@ -158,6 +179,10 @@ def views(config, rows):
         "WORKLOG.md": "# 历史记录（含被替代版本）\n\n" + banner + "".join(section(row) for row in rows),
         "LEDGERS.md": "# 分类台账\n\n" + banner + "".join("# " + kind + "\n\n" + "".join(section(row) for row in live if row["record"]["kind"] == kind) for kind in KINDS),
     }
+    papers = [row for row in live if row["record"]["kind"] == "paper"]
+    result["PAPER_INDEX.md"] = "# 当前文献目录\n\n" + banner + "".join(
+        "- " + row["record"]["title"].replace("\n", " ") + " — [笔记](notes/" + row["id"] + ".md) · "
+        + str(row["record"]["paper"].get("year", "年份未知")) + "\n" for row in papers)
     for row in rows:
         if row["record"]["kind"] == "paper":
             result["notes/" + row["id"] + ".md"] = banner + section(row)
@@ -188,11 +213,21 @@ def initialize(root, name):
 
 def record(root, data):
     validate(data)
+    # 复制后规范化，避免修改调用者持有的输入对象。
+    data = json.loads(encode(data))
+    if data["kind"] == "paper" and "doi" in data["paper"]:
+        data["paper"]["doi"] = normalize_doi(data["paper"]["doi"])
     with locked(root):
         _, rows = load(root)
         previous = data.get("supersedes")
         if previous and previous not in {row["id"] for row in current(rows)}:
             raise ValueError("supersedes 必须指向当前有效记录的 ID")
+        doi = data.get("paper", {}).get("doi")
+        if doi:
+            for existing in current(rows):
+                old_doi = existing["record"].get("paper", {}).get("doi")
+                if old_doi and normalize_doi(old_doi) == doi and existing["id"] != previous:
+                    raise ValueError("DOI 已入库，ID=" + existing["id"] + "；更新笔记请使用 supersedes，不能重复新增")
         row = {"schema_version": 1, "id": uuid.uuid4().hex,
                "created_at": datetime.now(timezone.utc).isoformat(), "record": data}
         atomic_write(bounded(root, "events/" + row["id"] + ".json"), encode(row))

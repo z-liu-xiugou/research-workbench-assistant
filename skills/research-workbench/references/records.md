@@ -46,7 +46,13 @@ paper 类型额外要求以下完整对象，其余类型不能有 paper：
 }
 ```
 
-reading_basis 仅支持 metadata/abstract/full_text。人工阅读状态始终显示未由工具确认；这不是人工已读台账。作者、年份、DOI 可暂写入 body/source；完整文献元数据 schema、DOI 去重、关系图谱仍是后续工作。
+reading_basis 仅支持 metadata/abstract/full_text。人工阅读状态始终显示未由工具确认；这不是人工已读台账。
+
+paper 对象还可包含 authors（作者字符串数组）、year（四位整数年份）、doi（字符串）、venue（期刊/会议）、tags（字符串数组）。未知信息请省略，不编造。旧格式继续支持。
+
+DOI 支持裸标识、doi: 前缀和 doi.org URL，入库时统一为小写裸标识。只检查格式，不联网核实。当前有效笔记中相同 DOI 会拒绝重复新增并返回已有 ID；修改笔记请以该 ID 为 supersedes 提交完整新记录。无 DOI 的论文不自动去重，题名相近也不会自动合并。
+
+PAPER_INDEX.md 自动列出当前有效文献及笔记链接；旧版本仍保留在 events 和 notes。升级后先备份工作台，再 render 生成新增目录。新格式可被新版读取，但含新字段的事件不保证旧版程序能读取。
 
 ## 文件关系与恢复
 
