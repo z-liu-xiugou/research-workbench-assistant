@@ -1,0 +1,8 @@
+[
+  {"kind":"fact","status":"已确认","title":"虚构演示事实","body":"仅确认演示记录的存在，不是科研结论。","evidence":["file:PROJECT_MANUAL.md"],"confirmation":{"by":"user","reference":"虚构测试场景：用户明确确认演示记录存在"}},
+  {"kind":"task","status":"进行中","title":"演示任务","body":"开始整理项目约定。","task_state":"in_progress","evidence":["file:PROJECT_MANUAL.md"]},
+  {"kind":"decision","status":"候选方案","title":"演示决策","body":"候选路线尚未确认。"},
+  {"kind":"issue","status":"待确认","title":"演示问题","body":"需用户确认评价指标。"},
+  {"kind":"experiment","status":"计划中","title":"演示实验","body":"尚未执行，不声称有结果。"},
+  {"kind":"artifact","status":"进行中","title":"演示产物","body":"初始手写记录文件已建立。","evidence":["file:PERSONAL_NOTES.md"]}
+]

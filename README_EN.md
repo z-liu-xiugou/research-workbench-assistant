@@ -4,7 +4,9 @@
 
 Keep research progress in your project after an AI conversation ends.
 
-**v0.1.0-alpha.6** is an early local Codex Skill with a standard-library Python helper. It supports research records, checkpoints, versioned notes, and online Crossref discovery with a separate candidate queue. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
+**v0.1.0-alpha.7** is an early local Codex Skill with a standard-library Python helper. It supports research records, checkpoints, versioned notes, and online Crossref discovery with a separate candidate queue. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
+
+New v2 events require locatable evidence for confirmed/in-progress records and an explicit user-confirmation reference for confirmed status. Legacy v1 events remain unchanged and produce audit warnings. Resume now returns a JSON reading plan, not just Markdown; it does not execute a full research review. Added a rebuildable decisions/issues view and known-secret regression scanning. See the [acceptance notes and limits](docs/ISSUE_ACCEPTANCE.md).
 
 Tasks now support todo/in_progress/done/cancelled, independently of research certainty. Completion requires evidence. The tasks command defaults to open tasks, while TASKS.md groups all current tasks. Older tasks remain unspecified, not assumed completed. Resume uses bounded summaries and source links rather than embedding paper notes. Back up existing workbenches, then render with the updated helper.
 

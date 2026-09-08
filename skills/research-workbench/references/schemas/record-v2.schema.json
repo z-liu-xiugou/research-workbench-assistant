@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Research Workbench record v2",
+  "$comment": "Structural contract. Files, prior IDs, DOI uniqueness and discovery payload semantics are additionally checked by workbench.py and literature.py.",
+  "type": "object",
+  "required": ["kind", "status", "title", "body"],
+  "additionalProperties": false,
+  "$defs": {
+    "text": {"type": "string", "pattern": "\\S"},
+    "texts": {"type": "array", "items": {"$ref": "#/$defs/text"}}
+  },
+  "properties": {
+    "kind": {"enum": ["progress", "fact", "artifact", "task", "decision", "issue", "experiment", "material", "checkpoint", "paper", "discovery", "candidate_review"]},
+    "status": {"enum": ["已确认", "进行中", "计划中", "候选方案", "待确认", "AI建议"]},
+    "title": {"$ref": "#/$defs/text"},
+    "body": {"$ref": "#/$defs/text"},
+    "evidence": {"$ref": "#/$defs/texts"},
+    "next_step": {"$ref": "#/$defs/text"},
+    "supersedes": {"type": "string", "pattern": "^[0-9a-f]{32}$"},
+    "task_state": {"enum": ["todo", "in_progress", "done", "cancelled"]},
+    "confirmation": {
+      "type": "object", "required": ["by", "reference"], "additionalProperties": false,
+      "properties": {"by": {"const": "user"}, "reference": {"$ref": "#/$defs/text"}}
+    },
+    "links": {
+      "type": "array", "items": {
+        "type": "object", "required": ["target", "relation", "reason"], "additionalProperties": false,
+        "properties": {
+          "target": {"type": "string", "pattern": "^[0-9a-f]{32}$"},
+          "relation": {"enum": ["references", "informs", "depends_on"]},
+          "reason": {"$ref": "#/$defs/text"}
+        }
+      }
+    },
+    "paper": {
+      "type": "object", "required": ["source", "reading_basis", "summary", "limitations"], "additionalProperties": false,
+      "properties": {
+        "source": {"$ref": "#/$defs/text"},
+        "reading_basis": {"enum": ["metadata", "abstract", "full_text"]},
+        "summary": {"$ref": "#/$defs/text"}, "limitations": {"$ref": "#/$defs/text"},
+        "authors": {"$ref": "#/$defs/texts"}, "tags": {"$ref": "#/$defs/texts"},
+        "year": {"type": "integer", "minimum": 1000, "maximum": 9999},
+        "doi": {"$ref": "#/$defs/text"}, "venue": {"$ref": "#/$defs/text"}
+      }
+    },
+    "discovery": {"type": "object"},
+    "candidate": {
+      "type": "object", "required": ["doi", "decision", "reason"], "additionalProperties": false,
+      "properties": {
+        "doi": {"$ref": "#/$defs/text"},
+        "decision": {"enum": ["pending", "kept", "excluded"]}, "reason": {"$ref": "#/$defs/text"}
+      }
+    }
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"enum": ["已确认", "进行中"]}}}, "then": {"required": ["evidence"], "properties": {"evidence": {"minItems": 1}}}},
+    {"if": {"properties": {"status": {"const": "已确认"}}}, "then": {"required": ["confirmation"]}},
+    {"if": {"properties": {"kind": {"const": "checkpoint"}}}, "then": {"required": ["next_step"]}},
+    {"if": {"required": ["task_state"]}, "then": {"properties": {"kind": {"const": "task"}}}},
+    {"if": {"required": ["task_state"], "properties": {"task_state": {"const": "done"}}}, "then": {"required": ["evidence"], "properties": {"evidence": {"minItems": 1}}}},
+    {"if": {"properties": {"kind": {"const": "paper"}}}, "then": {"required": ["paper"]}, "else": {"not": {"required": ["paper"]}}},
+    {"if": {"properties": {"kind": {"const": "discovery"}}}, "then": {"required": ["discovery"], "properties": {"status": {"const": "待确认"}}, "not": {"required": ["supersedes"]}}, "else": {"not": {"required": ["discovery"]}}},
+    {"if": {"properties": {"kind": {"const": "candidate_review"}}}, "then": {"required": ["candidate"], "not": {"required": ["supersedes"]}}, "else": {"not": {"required": ["candidate"]}}}
+  ]
+}

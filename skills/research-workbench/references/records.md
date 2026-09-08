@@ -1,4 +1,10 @@
-# 记录格式与命令（schema_version 1）
+# 记录格式与命令（配置 v1，新增事件 v2）
+
+机器可读结构：[配置](schemas/config-v1.schema.json)、[事件封装](schemas/event-v2.schema.json)、[记录](schemas/record-v2.schema.json)。脚本使用标准库完成等价的基础校验及跨记录规则；JSON Schema 本身不能验证文件存在、历史引用、DOI 去重或检索批次语义。实际写入还必须通过 `record`，不要绕过它直接创建事件。
+
+配置只含 schema_version=1 和项目 name；事件由工具补充 schema_version=2、id、created_at 和 record。事实 fact、任务 task、决策 decision、问题 issue、实验 experiment、产物 artifact 共享记录结构，以 kind 区分；progress 是进展，material 是资料登记，不会自动成为已确认事实。
+
+旧 v1 事件保留原字节并可继续读取、备份和重建；audit 对当前仍有效的旧事件给出 evidence_warnings，退出码为 1，表示需人工复核，不是自动迁移失败。后续修订须按 v2 提交完整新事件，不能把旧事件版本号手工改成 2；修订后的旧历史仍保留，但不再作为当前状态告警。新事件不保证旧版程序可读，升级前先备份。
 
 在线找论文与候选筛选使用 [discovery.md](discovery.md)。新类型 discovery 表示检索批次，candidate_review 表示筛选历史，由专门命令生成，不与 kind=paper 的真实笔记混淆。两类记录只追加、不允许 supersedes 替代；候选及其筛选事件会随工作台备份。
 
@@ -27,7 +33,13 @@ python -X utf8 "<script>" tasks --root "<root>" --state open
 }
 ```
 
-必填：kind、status、title、body。kind 可选 progress/task/decision/issue/experiment/material/checkpoint/paper。status 可选已确认、进行中、计划中、候选方案、待确认、AI建议。checkpoint 必须含非空 next_step。已确认必须含非空 evidence 数组，但脚本不能判断证据真假。证据字符串仅被存储展示，不被脚本读取或执行。
+必填：kind、status、title、body。kind 可选 progress/fact/artifact/task/decision/issue/experiment/material/checkpoint/paper/discovery/candidate_review。status 可选已确认、进行中、计划中、候选方案、待确认、AI建议。checkpoint 必须含非空 next_step。
+
+v2 的已确认和进行中必须含非空 evidence，且每项是以下之一：`file:PROJECT_MANUAL.md`（工作台内已存在的相对文件，正斜杠分隔，不允许越界）、`event:已有32位事件ID`、`doi:有效DOI`、HTTP(S) URL。文件只检查位置和存在性，不读取/执行正文；URL 和 DOI 只检查格式，不联网验证可访问性。其他状态仍可使用说明性字符串。无法定位证据就先保持待确认或计划中，不能伪造引用。
+
+已确认还须提供 `"confirmation": {"by": "user", "reference": "用户明确确认的对话出处及内容"}`。只能在用户确实明确确认后记录，不能因为 AI 自己认同就填写。该字段是可审计的声明，不是登录认证或数字签名，无法阻止恶意调用者冒充用户。证据存在也不等于结论正确。
+
+外部证据文件后来丢失时，历史仍可读；audit 报 evidence_warnings。备份不包含任意证据文件，恢复后须另行补齐这些文件并审查警告。confirmation 会随历史显示、备份和恢复。
 
 可选 next_step、evidence、supersedes（已存在且尚未被替代的事件 ID）。修订也必须提交完整新记录，而不是局部字段。历史 ID 由脚本返回；可通过 search 找回。不支持删除/改写历史。不要在输入里自行设置 id、created_at 或 schema_version。
 
@@ -38,6 +50,10 @@ task 类型可以使用 task_state 字段：todo（待办）、in_progress（执
 修改任务时用 supersedes 指向旧事件 ID，并提交完整记录；可取消或重新打开任务，旧版本保留。旧任务缺少 task_state 时显示 unspecified，不推断为已完成。tasks 默认输出未关闭任务 JSON 数组；--state all/done/cancelled/todo/in_progress/unspecified 可筛选。TASKS.md 自动按状态分组，不要手改。
 
 ACTIVE_CONTEXT.md 现在只保留最新断点和最多 5 条非文献近期记录的短摘要，再列最多 5 项未关闭任务。标题截取至 120 字符、正文至 240 字符、下一步至 500 字符；完整内容在链接的原始事件中。未关闭清单较长时应读取 TASKS.md，不把断点当成完整台账。
+
+`resume` 返回 JSON 读取计划（包含 checkpoint 文本），不再只输出 Markdown。默认只读 ACTIVE_CONTEXT，最多 16000 字符；无断点/空断点会返回 review_required，过长断点按冲突处理。已知有冲突、范围变化、正式交付、证据不足或用户明确要求审计时，分别使用 `--reason checkpoint_conflict/scope_change/formal_deliverable/insufficient_evidence/explicit_audit`。一次只传一个实际原因。新开对话本身不是升级理由；命令不会通过全盘扫描来猜测变化，也不声称已经执行科研审查。
+
+轻量模式按本次问题选择断点里的精确事件链接，再读有关记录；只有证据不足时才扩大范围。review_required 返回需要进一步读取的工作台路径，使用者须按该计划实际审查，再报告结论。`DECISIONS_AND_ISSUES.md` 只列当前决策和问题；旧版本保留在 WORKLOG。所有自动视图都可删除后用 render 重建，手写文件不覆盖。
 
 ## 记录间的显式关联
 

@@ -14,6 +14,8 @@ python -X utf8 scripts/install.py --dest "目标项目/.agents/skills"
 
 更新时先 `git pull --ff-only`，把已安装的旧 research-workbench 文件夹移动到**技能扫描目录之外**备份，再运行安装器。安装器拒绝自动覆盖，避免丢失本地修改。卸载只移走安装的 Skill 文件夹，项目内科研记录仍保留。不要删除整个 .agents 目录。
 
+alpha.7 同时升级记录规则：新增事件用 v2，已确认/进行中需要可定位证据，已确认还需用户确认出处。旧历史保留不改，audit 会提示人工复核；不要手改旧事件版本号。resume 现在输出包含断点的 JSON 读取计划。[格式与升级说明](../skills/research-workbench/references/records.md)
+
 ## 2. 在真正的研究项目中使用
 
 在 Codex 打开研究项目，使用 `$research-workbench` 请求初始化。Skill 会调用随包脚本，在项目内创建 research-workbench/。它不修改已有 AGENTS.md，也不迁移已有私有助手。
