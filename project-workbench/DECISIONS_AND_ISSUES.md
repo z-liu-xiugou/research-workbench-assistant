@@ -55,7 +55,7 @@
 
 ### I-006｜v0.1 GitHub Issue 验收
 
-- 用户要求解决 #1–#6。alpha.7 补齐程序和测试缺口，待对应提交的远端 CI 通过后逐项关闭；证据见 docs/ISSUE_ACCEPTANCE.md 和各 Issue 评论。
+- 已关闭：alpha.7 实现提交 3bcdb40 的远端 CI 34224205999 四组全部通过，GitHub #1–#6 已逐项附证据关闭；证据见 docs/ISSUE_ACCEPTANCE.md 和各 Issue 评论。
 - v2 不改写 v1 历史；确认字段是可审计声明而非身份认证，resume 是读取路由而非科研结论自动审查器。
 
 ## 3. 已关闭问题

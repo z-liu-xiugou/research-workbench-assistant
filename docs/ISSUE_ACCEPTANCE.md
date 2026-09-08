@@ -2,6 +2,8 @@
 
 本次版本：0.1.0a7。只修改独立开源仓库，不迁移或改动原始私有助手。
 
+2026-09-08 已验收并关闭 #1–#6。[实现提交 3bcdb40](https://github.com/z-liu-xiugou/research-workbench-assistant/commit/3bcdb40e733584df318640ebfe961d5a7d1d3f25) 的 [四组 CI 全部通过](https://github.com/z-liu-xiugou/research-workbench-assistant/actions/runs/34224205999)。本地 75 项测试：74 通过、1 项 Windows 符号链接权限跳过；Skill 静态校验通过、已知隐私模式扫描无命中。各 Issue 已留下对应验收证据与限制。
+
 | Issue | 实现与验收入口 |
 | --- | --- |
 | #1 配置及记录结构 | references/schemas 提供配置 v1、事件 v2、记录 v2 JSON Schema；fact/task/decision/issue/experiment/artifact 共享类型化结构；examples/record-v2-examples.json 由真实 record 写入测试验证。进行中和已确认缺证据会拒绝。 |
