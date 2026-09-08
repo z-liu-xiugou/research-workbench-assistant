@@ -1,0 +1,9 @@
+{
+  "kind": "task",
+  "status": "计划中",
+  "task_state": "todo",
+  "title": "虚构演示：核对实验输入",
+  "body": "整理数据字段及缺失项，尚未开始执行。",
+  "evidence": [],
+  "next_step": "先确认数据使用范围"
+}

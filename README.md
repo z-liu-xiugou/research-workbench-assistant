@@ -8,7 +8,7 @@
 
 面向研究生的本地科研记录助手，以 Codex Skill 形式使用：记录目标、进展、问题和下一步，在新对话中按需续接；文献笔记保存为 Markdown 和 JSON。
 
-> **v0.1.0-alpha.2：早期可用版。** 已提供可安装 Skill 和可运行的记录工具，适合个人试用。尚不是全自动科研平台，也不保证 AI 内容准确。
+> **v0.1.0-alpha.3：早期可用版。** 已提供可安装 Skill 和可运行的记录工具，适合个人试用。尚不是全自动科研平台，也不保证 AI 内容准确。
 
 ## 五分钟开始
 
@@ -50,6 +50,7 @@ $research-workbench 继续上次研究。先读当前断点，只加载这次任
 | 跨对话续接 | 保存本地断点，由 Codex 在新任务中读取；不是云端聊天记忆 |
 | 进展和分类台账 | 进展、任务、决策、问题、实验、材料、断点、文献记录 |
 | 修订留痕 | 追加新记录并标记替代关系，旧版本保留 |
+| 任务执行跟踪 | 待办、执行中、完成、取消；筛出未关闭任务，保留修订历史 |
 | 文献笔记库 | 将 Codex/用户提供的笔记生成 Markdown + JSON；区分摘要与全文 |
 | 本地检索 | 当前有效记录的关键词搜索，可限定文献类型 |
 | 检查与恢复 | 校验结构、发现视图不一致、从历史记录重建 |
@@ -71,6 +72,14 @@ python -X utf8 skills/research-workbench/scripts/workbench.py audit --root demo-
 打开 demo-workbench/ACTIVE_CONTEXT.md 和 demo-workbench/notes/ 查看结果。示例全部虚构，不可作为真实文献引用。详见 [使用指南](docs/GETTING_STARTED.md)。
 
 ## 数据与安全
+
+新增任务示例为 examples/task.json。入库后可运行：
+
+```powershell
+python -X utf8 skills/research-workbench/scripts/workbench.py tasks --root demo-workbench
+```
+
+默认返回未关闭任务；`--state done` 查看已完成。完成需提供证据，不能将“任务做完”混同于“研究结论已确认”。续接断点只展示短摘要与原始事件链接，完整任务见 TASKS.md。旧工作台升级先备份，再用新版 render 重建视图。
 
 - 脚本不联网、不上传记录；但使用 Codex 模型或外部工具不等于完全离线，请遵守课题数据要求。
 - 工作台默认忽略 Git 提交，但 .gitignore 不是隐私保证。已跟踪文件、强制添加、同步盘需要另外检查。

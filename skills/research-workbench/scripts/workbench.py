@@ -10,8 +10,9 @@ import sys
 import tempfile
 import uuid
 
-VERSION = "0.1.0a2"
+VERSION = "0.1.0a3"
 STATUSES = ("已确认", "进行中", "计划中", "候选方案", "待确认", "AI建议")
+TASK_STATES = ("todo", "in_progress", "done", "cancelled")
 KINDS = ("progress", "task", "decision", "issue", "experiment", "material", "checkpoint", "paper")
 
 
@@ -75,7 +76,7 @@ def normalize_doi(value):
 def validate(data):
     if not isinstance(data, dict):
         raise ValueError("记录必须是 JSON 对象")
-    allowed = {"kind", "status", "title", "body", "evidence", "next_step", "paper", "supersedes"}
+    allowed = {"kind", "status", "title", "body", "evidence", "next_step", "paper", "supersedes", "task_state"}
     if set(data) - allowed:
         raise ValueError("未知字段：" + ", ".join(sorted(set(data) - allowed)))
     for key in ("kind", "status", "title", "body"):
@@ -87,6 +88,11 @@ def validate(data):
         raise ValueError("evidence 必须是非空字符串组成的数组")
     if data["status"] == "已确认" and not evidence:
         raise ValueError("已确认记录必须提供 evidence；工具不替用户判断证据真实性")
+    if "task_state" in data:
+        if data["kind"] != "task" or data["task_state"] not in TASK_STATES:
+            raise ValueError("task_state 仅用于 task，取值为 todo/in_progress/done/cancelled")
+        if data["task_state"] == "done" and not evidence:
+            raise ValueError("完成任务必须提供 evidence；不自动判定证据真实性")
     for key in ("next_step", "supersedes"):
         if key in data:
             required_text(data, key)
@@ -148,10 +154,33 @@ def current(rows):
     return [row for row in rows if row["id"] not in replaced]
 
 
+def tasks(rows, state="open"):
+    """旧任务不推断完成情况，归为 unspecified 并列入未关闭任务。"""
+    result = []
+    for row in current(rows):
+        data = row["record"]
+        actual = data.get("task_state", "unspecified")
+        if data["kind"] == "task" and (state == "all" or state == actual or
+                (state == "open" and actual not in ("done", "cancelled"))):
+            result.append(row)
+    return result
+
+
+def brief(row):
+    """断点只保留有界导航；全文仍在原始事件中。"""
+    data = row["record"]
+    title = " ".join(data["title"].split())[:120]
+    body = " ".join(data["body"].split())[:240]
+    return (f"- [{data['status']}] {title} ({data.get('task_state', data['kind'])})\n"
+            f"  {body}\n  [完整记录](events/{row['id']}.json)\n")
+
+
 def section(row):
     data = row["record"]
     result = f"## [{data['status']}] {data['title']}\n\n{data['body']}\n\n"
     result += f"类型：{data['kind']} · ID：{row['id']} · UTC：{row['created_at']}\n\n"
+    if data["kind"] == "task":
+        result += "任务状态：" + data.get("task_state", "unspecified（旧记录未指定）") + "\n\n"
     if data.get("next_step"):
         result += "下一步：" + data["next_step"] + "\n\n"
     if data.get("evidence"):
@@ -170,15 +199,23 @@ def views(config, rows):
     banner = "> 自动生成，请通过 record 追加或修订；手写内容请放到 PERSONAL_NOTES.md。\n\n"
     live = current(rows)
     checkpoints = [row for row in live if row["record"]["kind"] == "checkpoint"]
-    active = section(checkpoints[-1]) if checkpoints else "尚无断点，请记录当前目标和下一步。\n\n"
+    active = (brief(checkpoints[-1]) + "\n下一步：" + " ".join(checkpoints[-1]["record"]["next_step"].split())[:500] + "\n\n"
+              if checkpoints else "尚无断点，请记录当前目标和下一步。\n\n")
     active += "最近进展（最多 5 条；完整记录见 CURRENT_STATUS.md 和 WORKLOG.md）：\n\n"
-    active += "".join(section(row) for row in live[-5:] if row["record"]["kind"] != "checkpoint")
+    recent = [row for row in live if row["record"]["kind"] not in ("checkpoint", "paper")][-5:]
+    active += "".join(brief(row) for row in recent)
+    open_tasks = tasks(rows)
+    active += f"\n未关闭任务：{len(open_tasks)} 项（最多展示 5 项；完整清单见 TASKS.md）。\n\n"
+    active += "".join(brief(row) for row in open_tasks[:5])
     result = {
         "ACTIVE_CONTEXT.md": "# " + config["name"] + "：续接断点\n\n" + banner + active,
         "CURRENT_STATUS.md": "# 当前记录\n\n" + banner + "".join(section(row) for row in live),
         "WORKLOG.md": "# 历史记录（含被替代版本）\n\n" + banner + "".join(section(row) for row in rows),
         "LEDGERS.md": "# 分类台账\n\n" + banner + "".join("# " + kind + "\n\n" + "".join(section(row) for row in live if row["record"]["kind"] == kind) for kind in KINDS),
     }
+    result["TASKS.md"] = "# 任务清单\n\n" + banner + "".join(
+        "# " + state + "\n\n" + "".join(section(row) for row in tasks(rows, state))
+        for state in (*TASK_STATES, "unspecified"))
     papers = [row for row in live if row["record"]["kind"] == "paper"]
     result["PAPER_INDEX.md"] = "# 当前文献目录\n\n" + banner + "".join(
         "- " + row["record"]["title"].replace("\n", " ") + " — [笔记](notes/" + row["id"] + ".md) · "
@@ -251,7 +288,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--version", action="version", version=VERSION)
     commands = parser.add_subparsers(dest="command", required=True)
-    for command in ("init", "record", "resume", "render", "audit", "search"):
+    for command in ("init", "record", "resume", "render", "audit", "search", "tasks"):
         sub = commands.add_parser(command)
         sub.add_argument("--root", type=Path, required=True, help="工作台目录，不是技能安装目录")
         if command == "init":
@@ -261,6 +298,8 @@ def main(argv=None):
         elif command == "search":
             sub.add_argument("--query", required=True)
             sub.add_argument("--kind", choices=KINDS)
+        elif command == "tasks":
+            sub.add_argument("--state", choices=("open", "all", "unspecified", *TASK_STATES), default="open")
     args = parser.parse_args(argv)
     try:
         root = args.root.resolve()
@@ -285,6 +324,9 @@ def main(argv=None):
             for row in current(rows):
                 if (not args.kind or row["record"]["kind"] == args.kind) and args.query.casefold() in encode(row).casefold():
                     print(encode(row))
+        elif args.command == "tasks":
+            _, rows = load(root)
+            print(encode(tasks(rows, args.state)))
         return 0
     except (OSError, ValueError, KeyError, TypeError) as error:
         print("错误：" + str(error), file=sys.stderr)

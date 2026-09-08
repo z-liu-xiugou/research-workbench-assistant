@@ -36,11 +36,17 @@ python -X utf8 scripts/install.py --dest "目标项目/.agents/skills"
 | CURRENT_STATUS.md | 未被替代的记录 | 自动生成 |
 | WORKLOG.md | 完整历史，包括旧版本 | 自动生成 |
 | LEDGERS.md | 按类型分组的记录 | 自动生成 |
+| TASKS.md | 按执行状态分组的任务 | 自动生成 |
+| PAPER_INDEX.md | 当前有效文献目录 | 自动生成 |
 | notes/*.md、*.json | 逐条文献笔记视图 | 自动生成 |
 | PERSONAL_NOTES.md | 用户自由笔记 | 可以 |
 | PROJECT_MANUAL.md | 研究范围、资料位置和约定 | 可以 |
 
-“当前记录”不表示任务全部未完成；本版用 status 和正文表达状态，没有独立完成/关闭字段。更正通过 supersedes 追加新版本。notes 保留历史文献版本；用 search 查询当前有效版本。
+“当前记录”不表示任务全部未完成。task_state 分别表示待办、执行中、完成和取消；status 仍表示研究判断，二者不是一回事。更正通过 supersedes 追加新版本。旧任务未指定执行状态时列为 unspecified，不自动判定完成。notes 保留历史文献版本；用 search 查询当前有效版本。
+
+例如告诉 Codex：“列出未完成任务”“把这项任务标记完成并保留测试结果作为依据”“取消这项任务但保留历史”。查看完整命令及字段见下方记录格式。
+
+升级时先备份工作台，再用新版脚本 render 生成 TASKS.md 和精简断点。原始记录保持不变。断点摘要会截短，需要细节时打开对应原始事件；含新字段的事件不保证能由旧版本程序读取。
 
 ## 4. 直接使用脚本
 

@@ -4,7 +4,9 @@
 
 Keep research progress in your project after an AI conversation ends.
 
-**v0.1.0-alpha.2** is an early local Codex Skill with a standard-library Python helper. It creates a workbench, records progress and checkpoints, keeps revision history, searches local records, and renders supplied paper notes as Markdown and JSON. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
+**v0.1.0-alpha.3** is an early local Codex Skill with a standard-library Python helper. It creates a workbench, records progress and checkpoints, keeps revision history, searches local records, and renders supplied paper notes as Markdown and JSON. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
+
+Tasks now support todo/in_progress/done/cancelled, independently of research certainty. Completion requires evidence. The tasks command defaults to open tasks, while TASKS.md groups all current tasks. Older tasks remain unspecified, not assumed completed. Resume uses bounded summaries and source links rather than embedding paper notes. Back up existing workbenches, then render with the updated helper.
 
 ## Install
 

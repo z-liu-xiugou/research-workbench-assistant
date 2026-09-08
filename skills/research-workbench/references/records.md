@@ -9,6 +9,7 @@ python -X utf8 "<script>" resume --root "<root>"
 python -X utf8 "<script>" search --root "<root>" --query "基线" --kind experiment
 python -X utf8 "<script>" audit --root "<root>"
 python -X utf8 "<script>" render --root "<root>"
+python -X utf8 "<script>" tasks --root "<root>" --state open
 ```
 
 输入是 UTF-8 JSON 对象；支持 BOM。用编辑工具生成输入文件，避免命令行转义造成损坏。输入文件也可能含隐私，应存进工作台或其他私有目录。
@@ -27,6 +28,16 @@ python -X utf8 "<script>" render --root "<root>"
 必填：kind、status、title、body。kind 可选 progress/task/decision/issue/experiment/material/checkpoint/paper。status 可选已确认、进行中、计划中、候选方案、待确认、AI建议。checkpoint 必须含非空 next_step。已确认必须含非空 evidence 数组，但脚本不能判断证据真假。证据字符串仅被存储展示，不被脚本读取或执行。
 
 可选 next_step、evidence、supersedes（已存在且尚未被替代的事件 ID）。修订也必须提交完整新记录，而不是局部字段。历史 ID 由脚本返回；可通过 search 找回。不支持删除/改写历史。不要在输入里自行设置 id、created_at 或 schema_version。
+
+## 任务跟踪与续接
+
+task 类型可以使用 task_state 字段：todo（待办）、in_progress（执行中）、done（完成）、cancelled（取消）。它表示任务执行情况，不代替 status 的研究判断。完成必须提供非空 evidence；程序不核实证据真假。只有实际完成且有依据才标记 done，不能因为生成了一段分析就自动完成实验任务。
+
+修改任务时用 supersedes 指向旧事件 ID，并提交完整记录；可取消或重新打开任务，旧版本保留。旧任务缺少 task_state 时显示 unspecified，不推断为已完成。tasks 默认输出未关闭任务 JSON 数组；--state all/done/cancelled/todo/in_progress/unspecified 可筛选。TASKS.md 自动按状态分组，不要手改。
+
+ACTIVE_CONTEXT.md 现在只保留最新断点和最多 5 条非文献近期记录的短摘要，再列最多 5 项未关闭任务。标题截取至 120 字符、正文至 240 字符、下一步至 500 字符；完整内容在链接的原始事件中。未关闭清单较长时应读取 TASKS.md，不把断点当成完整台账。
+
+## 文献记录
 
 paper 类型额外要求以下完整对象，其余类型不能有 paper：
 
