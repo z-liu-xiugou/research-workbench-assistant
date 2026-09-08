@@ -4,7 +4,7 @@
 
 Keep research progress in your project after an AI conversation ends.
 
-**v0.1.0-alpha.5** is an early local Codex Skill with a standard-library Python helper. It creates a workbench, records progress and checkpoints, keeps revision history, searches local records, and renders supplied paper notes as Markdown and JSON. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
+**v0.1.0-alpha.6** is an early local Codex Skill with a standard-library Python helper. It supports research records, checkpoints, versioned notes, and online Crossref discovery with a separate candidate queue. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
 
 Tasks now support todo/in_progress/done/cancelled, independently of research certainty. Completion requires evidence. The tasks command defaults to open tasks, while TASKS.md groups all current tasks. Older tasks remain unspecified, not assumed completed. Resume uses bounded summaries and source links rather than embedding paper notes. Back up existing workbenches, then render with the updated helper.
 
@@ -34,9 +34,22 @@ $research-workbench Resume from the saved checkpoint and only load evidence rele
 
 ## Boundaries
 
-No built-in online paper search, PDF parser, Zotero integration, scheduler, graph visualization or multi-user collaboration yet. Codex may use separately available tools, but they are not bundled here. Generated notes do not mean the user has read the paper.
+Built-in online discovery currently supports Crossref only. There is no PDF downloader/parser, other bundled search provider, Zotero integration, scheduler, interactive graph UI or multi-user collaboration. Candidates and generated notes do not imply human reading.
 
-The helper makes no network requests. Using Codex or external tools is not fully offline AI. Workbenches ignore records in Git by default; this does not protect already-tracked files or forced additions. Back up important data.
+Only discover sends explicit query parameters to Crossref; it does not upload local documents or workbench records. Other commands are local. Never include confidential research details in queries. Using Codex or external tools is not fully offline AI. Workbenches ignore records in Git by default; this does not protect already-tracked files or forced additions. Back up important data.
+
+## Online discovery
+
+After initializing a workbench:
+
+```sh
+python -X utf8 skills/research-workbench/scripts/workbench.py discover --root demo-workbench --query "renewable energy forecasting" --year-start 2023 --year-end 2025 --limit 10
+python -X utf8 skills/research-workbench/scripts/workbench.py candidates --root demo-workbench --state all
+```
+
+Each request saves an atomic search batch: query, source URL, retrieval time, metadata, duplicates and invalid-item reasons. DOI deduplication covers the current batch, earlier candidates and existing current notes. Review with candidate-review --doi DOI --decision kept (or excluded/pending) --reason REASON. Adding an actual paper note with the same DOI marks the candidate noted, not human-read.
+
+Crossref public access needs no API key. Fetches only the first 1–50 relevance-ranked results, not exhaustive coverage. Network errors are not empty results; no automatic retries or full-text downloads. See [workflow details](skills/research-workbench/references/discovery.md) and [Crossref documentation](https://www.crossref.org/documentation/retrieve-metadata/rest-api/).
 
 Events are source records; views can be rebuilt. Correct records by appending a supersedes revision, not editing history. Keep manual notes in PERSONAL_NOTES.md; rendering overwrites generated views. See [record format](skills/research-workbench/references/records.md).
 

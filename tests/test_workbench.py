@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPT = REPO / "skills/research-workbench/scripts/workbench.py"
+sys.path.insert(0, str(SCRIPT.parent))
 
 
 def module(name, path):

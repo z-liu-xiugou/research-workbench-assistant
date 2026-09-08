@@ -39,6 +39,7 @@ python -X utf8 scripts/install.py --dest "目标项目/.agents/skills"
 | TASKS.md | 按执行状态分组的任务 | 自动生成 |
 | PAPER_INDEX.md | 当前有效文献目录 | 自动生成 |
 | RELATIONS.md、RELATIONS.json | 当前记录的显式关联及旧版本提示 | 自动生成 |
+| CANDIDATES.md、CANDIDATES.json | 联网检索所得候选、出处及筛选状态 | 自动生成 |
 | notes/*.md、*.json | 逐条文献笔记视图 | 自动生成 |
 | PERSONAL_NOTES.md | 用户自由笔记 | 可以 |
 | PROJECT_MANUAL.md | 研究范围、资料位置和约定 | 可以 |
@@ -50,6 +51,14 @@ python -X utf8 scripts/install.py --dest "目标项目/.agents/skills"
 升级时先备份工作台，再用新版脚本 render 生成 TASKS.md 和精简断点。原始记录保持不变。断点摘要会截短，需要细节时打开对应原始事件；含新字段的事件不保证能由旧版本程序读取。
 
 ## 4. 直接使用脚本
+
+内置在线文献检索已加入，可直接在 Codex 中说：
+
+```text
+$research-workbench 使用 Crossref 检索 renewable energy forecasting，限定 2023–2025 年，取前 10 条，去重后保存候选队列。不要标记为已读。
+```
+
+独立脚本命令、候选筛选及笔记衔接见 [完整文献发现流程](../skills/research-workbench/references/discovery.md)。查询词会发送给 Crossref，不能含敏感材料；单次检索不是系统综述，不自动下载 PDF。
 
 完整命令、字段和例子见 [记录格式](../skills/research-workbench/references/records.md)。输入文件由 Codex 用编辑工具生成，或自己保存 UTF-8 JSON。不要在参数中放密钥。
 

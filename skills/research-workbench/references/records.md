@@ -1,5 +1,7 @@
 # 记录格式与命令（schema_version 1）
 
+在线找论文与候选筛选使用 [discovery.md](discovery.md)。新类型 discovery 表示检索批次，candidate_review 表示筛选历史，由专门命令生成，不与 kind=paper 的真实笔记混淆。两类记录只追加、不允许 supersedes 替代；候选及其筛选事件会随工作台备份。
+
 `<script>` 是本技能 `scripts/workbench.py` 的实际路径，`<root>` 是项目内的工作台目录。Windows 示例使用 PowerShell；所有路径加引号，使用 `python -X utf8`。解释器名称可按用户环境调整。
 
 ```powershell

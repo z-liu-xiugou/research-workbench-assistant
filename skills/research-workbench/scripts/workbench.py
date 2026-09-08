@@ -1,6 +1,6 @@
-"""本地科研记录工具；仅使用 Python 标准库，不发送网络请求。"""
+"""科研工作台；仅 discover 显式查询 Crossref，其他命令处理本地记录。"""
 import argparse
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from datetime import datetime, timezone
 import json
 import hashlib
@@ -11,14 +11,15 @@ import shutil
 import sys
 import tempfile
 import uuid
+from literature import search_crossref, validate_discovery
 
-VERSION = "0.1.0a5"
+VERSION = "0.1.0a6"
 BACKUP_LIMIT = 64 * 1024 * 1024
 BACKUP_CORE = ("config.json", "PERSONAL_NOTES.md", "PROJECT_MANUAL.md")
 STATUSES = ("已确认", "进行中", "计划中", "候选方案", "待确认", "AI建议")
 TASK_STATES = ("todo", "in_progress", "done", "cancelled")
 RELATIONS = ("references", "informs", "depends_on")
-KINDS = ("progress", "task", "decision", "issue", "experiment", "material", "checkpoint", "paper")
+KINDS = ("progress", "task", "decision", "issue", "experiment", "material", "checkpoint", "paper", "discovery", "candidate_review")
 
 
 def encode(value):
@@ -81,7 +82,7 @@ def normalize_doi(value):
 def validate(data):
     if not isinstance(data, dict):
         raise ValueError("记录必须是 JSON 对象")
-    allowed = {"kind", "status", "title", "body", "evidence", "next_step", "paper", "supersedes", "task_state", "links"}
+    allowed = {"kind", "status", "title", "body", "evidence", "next_step", "paper", "supersedes", "task_state", "links", "discovery", "candidate"}
     if set(data) - allowed:
         raise ValueError("未知字段：" + ", ".join(sorted(set(data) - allowed)))
     for key in ("kind", "status", "title", "body"):
@@ -139,6 +140,24 @@ def validate(data):
             raise ValueError("reading_basis 必须为 metadata、abstract 或 full_text")
     elif "paper" in data:
         raise ValueError("只有 paper 类型可包含 paper 字段")
+    if data["kind"] == "discovery":
+        validate_discovery(data.get("discovery"))
+        if data["status"] != "待确认" or "supersedes" in data:
+            raise ValueError("检索批次只能为待确认且不允许替代历史批次")
+    elif "discovery" in data:
+        raise ValueError("discovery 字段只用于检索批次")
+    if data["kind"] == "candidate_review":
+        candidate = data.get("candidate")
+        if not isinstance(candidate, dict) or set(candidate) != {"doi", "decision", "reason"}:
+            raise ValueError("候选筛选记录必须包含 doi/decision/reason")
+        for key in candidate:
+            required_text(candidate, key)
+        if normalize_doi(candidate["doi"]) != candidate["doi"] or candidate["decision"] not in ("pending", "kept", "excluded"):
+            raise ValueError("候选筛选 DOI 或 decision 无效")
+        if "supersedes" in data:
+            raise ValueError("筛选采用追加事件，不使用 supersedes")
+    elif "candidate" in data:
+        raise ValueError("candidate 字段只用于候选筛选")
 
 
 def load(root):
@@ -161,10 +180,24 @@ def load(root):
     rows.sort(key=lambda row: (row["created_at"], row["id"]))
     known = set()
     replaced = set()
+    candidate_dois = set()
+    immutable = set()
     for row in rows:
         previous = row["record"].get("supersedes")
         if previous and (previous not in known or previous in replaced):
             raise ValueError("supersedes 必须指向尚未被替代的历史记录")
+        if previous in immutable:
+            raise ValueError("检索和筛选事件不允许被替代")
+        data = row["record"]
+        if data["kind"] in ("discovery", "candidate_review"):
+            immutable.add(row["id"])
+        if data["kind"] == "discovery":
+            for item in data["discovery"]["items"]:
+                if item["doi"] in candidate_dois:
+                    raise ValueError("历史检索包含重复候选 DOI")
+                candidate_dois.add(item["doi"])
+        if data["kind"] == "candidate_review" and data["candidate"]["doi"] not in candidate_dois:
+            raise ValueError("候选筛选指向不存在的 DOI")
         if previous:
             replaced.add(previous)
         if any(link["target"] not in known for link in row["record"].get("links", [])):
@@ -176,6 +209,51 @@ def load(root):
 def current(rows):
     replaced = {row["record"].get("supersedes") for row in rows}
     return [row for row in rows if row["id"] not in replaced]
+
+
+def candidates(rows, state="pending"):
+    """候选与正式笔记分离；已有同 DOI 笔记只标 noted，不代表人工已读。"""
+    queue = {}
+    notes = {normalize_doi(row["record"]["paper"]["doi"]): row["id"] for row in current(rows)
+             if row["record"]["kind"] == "paper" and row["record"]["paper"].get("doi")}
+    for row in rows:
+        data = row["record"]
+        if data["kind"] == "discovery":
+            for item in data["discovery"]["items"]:
+                queue[item["doi"]] = dict(item, state="pending", decision="pending", review_reason="尚未筛选",
+                    discovery_id=row["id"], query=data["discovery"]["query"], retrieved_at=data["discovery"]["retrieved_at"])
+        elif data["kind"] == "candidate_review":
+            review = data["candidate"]
+            queue[review["doi"]].update(state=review["decision"], decision=review["decision"], review_reason=review["reason"])
+    for doi, item in queue.items():
+        if doi in notes:
+            item.update(state="noted", note_id=notes[doi])
+    return [item for item in queue.values() if state == "all" or item["state"] == state]
+
+
+def discover(root, query, limit=10, year_start=None, year_end=None, timeout=20):
+    load(root)  # 无效工作台先报错，不发送查询。
+    batch = search_crossref(query, limit, year_start, year_end, timeout)
+    # 请求完成后才锁定本地存储；一个批次原子保存，避免逐篇写入中断后的半批数据。
+    with locked(root):
+        _, rows = load(root)
+        known = {item["doi"]: "candidate" for item in candidates(rows, "all")}
+        known.update({normalize_doi(row["record"]["paper"]["doi"]): "paper" for row in current(rows)
+                      if row["record"]["kind"] == "paper" and row["record"]["paper"].get("doi")})
+        new = []
+        for item in batch["items"]:
+            if item["doi"] in known:
+                batch["duplicates"].append({"doi": item["doi"], "existing": known[item["doi"]]})
+            else:
+                new.append(item)
+                known[item["doi"]] = "batch"
+        batch["items"] = new
+        identifier = record(root, {"kind": "discovery", "status": "待确认", "title": "文献检索：" + query,
+            "body": f"新增候选 {len(new)} 篇；重复 {len(batch['duplicates'])} 篇；无效条目 {len(batch['skipped'])} 篇。仅元数据检索，未读取全文或生成笔记。",
+            "evidence": [batch["request_url"]], "discovery": batch}, _locked=True)
+    return {"discovery_id": identifier, "added": len(new), "duplicates": batch["duplicates"],
+            "skipped": batch["skipped"], "total_results": batch["total_results"],
+            "note": "只获取按来源相关性排序的首批结果，不是穷尽检索；候选未标记已读。"}
 
 
 def tasks(rows, state="open"):
@@ -243,6 +321,11 @@ def section(row, prefix=""):
         result += "显式关联（不自动验证）：\n\n" + "".join(
             f"- {link['relation']} → [{link['target']}]({prefix}events/{link['target']}.json)：{link['reason']}\n"
             for link in data["links"]) + "\n"
+    if data["kind"] == "discovery":
+        batch = data["discovery"]
+        result += f"来源：{batch['source']} · 检索时间：{batch['retrieved_at']} · 来源总命中：{batch['total_results']}\n\n"
+    if data["kind"] == "candidate_review":
+        result += "候选筛选：" + encode(data["candidate"]) + "\n"
     if "paper" in data:
         paper = data["paper"]
         for key, label in (("authors", "作者"), ("year", "年份"), ("doi", "DOI"), ("venue", "期刊/会议"), ("tags", "标签")):
@@ -260,7 +343,7 @@ def views(config, rows):
     active = (brief(checkpoints[-1]) + "\n下一步：" + " ".join(checkpoints[-1]["record"]["next_step"].split())[:500] + "\n\n"
               if checkpoints else "尚无断点，请记录当前目标和下一步。\n\n")
     active += "最近进展（最多 5 条；完整记录见 CURRENT_STATUS.md 和 WORKLOG.md）：\n\n"
-    recent = [row for row in live if row["record"]["kind"] not in ("checkpoint", "paper")][-5:]
+    recent = [row for row in live if row["record"]["kind"] not in ("checkpoint", "paper", "discovery", "candidate_review")][-5:]
     active += "".join(brief(row) for row in recent)
     open_tasks = tasks(rows)
     active += f"\n未关闭任务：{len(open_tasks)} 项（最多展示 5 项；完整清单见 TASKS.md）。\n\n"
@@ -274,6 +357,14 @@ def views(config, rows):
     result["TASKS.md"] = "# 任务清单\n\n" + banner + "".join(
         "# " + state + "\n\n" + "".join(section(row) for row in tasks(rows, state))
         for state in (*TASK_STATES, "unspecified"))
+    queue = candidates(rows, "all")
+    result["CANDIDATES.json"] = encode(queue)
+    result["CANDIDATES.md"] = "# 候选文献队列\n\n" + banner + "> 元数据与摘要是来源资料，不是精读笔记；noted 也不代表人工已读。\n\n" + "".join(
+        f"## [{item['state']}] {item['title']}\n\nDOI：{item['doi']}\n\n来源：{item['url']}\n\n"
+        f"作者：{', '.join(item['authors']) or '未提供'} · 年份：{item.get('year', '未提供')} · 刊物：{item.get('venue', '未提供')}\n\n"
+        f"[检索批次](events/{item['discovery_id']}.json) · 检索词：{item['query']} · 时间：{item['retrieved_at']}\n\n"
+        f"筛选：{item['decision']}；理由：{item['review_reason']}\n\n来源摘要（未生成笔记）：{item.get('abstract', '来源未提供摘要')}\n\n"
+        + (f"[已有笔记](notes/{item['note_id']}.md)\n\n" if item.get("note_id") else "") for item in queue)
     papers = [row for row in live if row["record"]["kind"] == "paper"]
     result["PAPER_INDEX.md"] = "# 当前文献目录\n\n" + banner + "".join(
         "- " + row["record"]["title"].replace("\n", " ") + " — [笔记](notes/" + row["id"] + ".md) · "
@@ -317,17 +408,24 @@ def initialize(root, name):
     render(root)
 
 
-def record(root, data):
+def record(root, data, _locked=False):
     validate(data)
     # 复制后规范化，避免修改调用者持有的输入对象。
     data = json.loads(encode(data))
     if data["kind"] == "paper" and "doi" in data["paper"]:
         data["paper"]["doi"] = normalize_doi(data["paper"]["doi"])
-    with locked(root):
+    with (nullcontext() if _locked else locked(root)):
         _, rows = load(root)
         previous = data.get("supersedes")
         if previous and previous not in {row["id"] for row in current(rows)}:
             raise ValueError("supersedes 必须指向当前有效记录的 ID")
+        if previous and any(row["id"] == previous and row["record"]["kind"] in ("discovery", "candidate_review") for row in rows):
+            raise ValueError("不能替代检索或筛选事件")
+        known_candidates = {item["doi"] for item in candidates(rows, "all")}
+        if data["kind"] == "candidate_review" and data["candidate"]["doi"] not in known_candidates:
+            raise ValueError("候选 DOI 不存在，请先检索")
+        if data["kind"] == "discovery" and any(item["doi"] in known_candidates for item in data["discovery"]["items"]):
+            raise ValueError("候选 DOI 已存在")
         if any(link["target"] not in {row["id"] for row in rows} for link in data.get("links", [])):
             raise ValueError("关联目标尚不存在，请先入库目标记录")
         doi = data.get("paper", {}).get("doi")
@@ -429,7 +527,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--version", action="version", version=VERSION)
     commands = parser.add_subparsers(dest="command", required=True)
-    for command in ("init", "record", "resume", "render", "audit", "search", "tasks", "backup", "restore", "graph", "related"):
+    for command in ("init", "record", "resume", "render", "audit", "search", "tasks", "backup", "restore", "graph", "related", "discover", "candidates", "candidate-review"):
         sub = commands.add_parser(command)
         sub.add_argument("--root", type=Path, required=True, help="工作台目录，不是技能安装目录")
         if command == "init":
@@ -447,6 +545,18 @@ def main(argv=None):
             sub.add_argument("--input", type=Path, required=True)
         elif command == "related":
             sub.add_argument("--id", required=True, help="精确事件 ID，不自动跳到最新版本")
+        elif command == "discover":
+            sub.add_argument("--query", required=True, help="会发送给 Crossref 的公开检索词，不要填机密材料")
+            sub.add_argument("--limit", type=int, default=10)
+            sub.add_argument("--year-start", type=int)
+            sub.add_argument("--year-end", type=int)
+            sub.add_argument("--timeout", type=int, default=20)
+        elif command == "candidates":
+            sub.add_argument("--state", choices=("pending", "kept", "excluded", "noted", "all"), default="pending")
+        elif command == "candidate-review":
+            sub.add_argument("--doi", required=True)
+            sub.add_argument("--decision", choices=("pending", "kept", "excluded"), required=True)
+            sub.add_argument("--reason", required=True)
     args = parser.parse_args(argv)
     try:
         root = args.root.absolute() if args.command == "restore" else args.root.resolve()
@@ -481,6 +591,14 @@ def main(argv=None):
         elif args.command in ("graph", "related"):
             _, rows = load(root)
             print(encode(relationship_graph(rows) if args.command == "graph" else related(rows, args.id)))
+        elif args.command == "discover":
+            print(encode(discover(root, args.query, args.limit, args.year_start, args.year_end, args.timeout)))
+        elif args.command == "candidates":
+            print(encode(candidates(load(root)[1], args.state)))
+        elif args.command == "candidate-review":
+            doi = normalize_doi(args.doi)
+            print(record(root, {"kind": "candidate_review", "status": "待确认", "title": "候选筛选：" + doi,
+                  "body": args.reason, "candidate": {"doi": doi, "decision": args.decision, "reason": args.reason}}))
         return 0
     except (OSError, ValueError, KeyError, TypeError) as error:
         print("错误：" + str(error), file=sys.stderr)
