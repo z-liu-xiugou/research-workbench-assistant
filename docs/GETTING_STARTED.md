@@ -38,6 +38,7 @@ python -X utf8 scripts/install.py --dest "目标项目/.agents/skills"
 | LEDGERS.md | 按类型分组的记录 | 自动生成 |
 | TASKS.md | 按执行状态分组的任务 | 自动生成 |
 | PAPER_INDEX.md | 当前有效文献目录 | 自动生成 |
+| RELATIONS.md、RELATIONS.json | 当前记录的显式关联及旧版本提示 | 自动生成 |
 | notes/*.md、*.json | 逐条文献笔记视图 | 自动生成 |
 | PERSONAL_NOTES.md | 用户自由笔记 | 可以 |
 | PROJECT_MANUAL.md | 研究范围、资料位置和约定 | 可以 |
@@ -60,7 +61,13 @@ $research-workbench 请阅读我提供的摘要，生成文献笔记并入库。
 
 脚本不生成学术内容；Codex 根据来源写笔记，脚本验证字段、保存和生成两种格式。内容仍需要你核对。
 
-## 5. 故障恢复
+## 5. 关联文献、任务和实验
+
+可以对助手说：“将这篇论文关联到基线实验任务，记录为什么相关”“查一下这项任务引用了哪些材料”。它会查找已入库记录的准确 ID，并按 links 字段保存关系。`related --id` 支持正向和反向查询；RELATIONS.md 可直接阅读，JSON 可供其他工具使用。
+
+目前只管理明确记录的关系，不自动判断因果或推断文献网络。引用旧版本时保留原依据，提示人工核对新版；完整格式见[记录格式](../skills/research-workbench/references/records.md#记录间的显式关联)。
+
+## 6. 故障恢复
 
 新增 backup/restore：前者导出受管理的原始记录与手写笔记，后者先校验再恢复到新目录。完整命令见 [备份与恢复](../skills/research-workbench/references/records.md#本地备份与安全恢复)。备份不是整个项目副本，不含论文与实验数据；未加密，不能随意公开。恢复不会覆盖已有目录。
 

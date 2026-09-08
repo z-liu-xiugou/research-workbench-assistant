@@ -4,7 +4,7 @@
 
 Keep research progress in your project after an AI conversation ends.
 
-**v0.1.0-alpha.4** is an early local Codex Skill with a standard-library Python helper. It creates a workbench, records progress and checkpoints, keeps revision history, searches local records, and renders supplied paper notes as Markdown and JSON. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
+**v0.1.0-alpha.5** is an early local Codex Skill with a standard-library Python helper. It creates a workbench, records progress and checkpoints, keeps revision history, searches local records, and renders supplied paper notes as Markdown and JSON. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
 
 Tasks now support todo/in_progress/done/cancelled, independently of research certainty. Completion requires evidence. The tasks command defaults to open tasks, while TASKS.md groups all current tasks. Older tasks remain unspecified, not assumed completed. Resume uses bounded summaries and source links rather than embedding paper notes. Back up existing workbenches, then render with the updated helper.
 
@@ -55,3 +55,7 @@ Paper records now support optional authors, year, DOI, venue and tags. Duplicate
 ## Backup and restore
 
 backup/restore preserve managed configuration, events, PERSONAL_NOTES.md and PROJECT_MANUAL.md. Restore validates hashes, paths and record structure before copying into a new directory; existing destinations are rejected. Backups are plaintext and exclude papers, experiment data and other custom files. Back up those separately. See the [command reference](skills/research-workbench/references/records.md).
+
+## Explicit research links
+
+Records support links with a target event ID, relation and reason. related queries incoming/outgoing links; graph and RELATIONS.md/JSON expose the current relationship set. References keep their exact historical target, with latest-version hints. No automatic inference, scientific validation or interactive graph UI is included.

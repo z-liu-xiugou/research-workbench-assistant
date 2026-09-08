@@ -37,7 +37,32 @@ task 类型可以使用 task_state 字段：todo（待办）、in_progress（执
 
 ACTIVE_CONTEXT.md 现在只保留最新断点和最多 5 条非文献近期记录的短摘要，再列最多 5 项未关闭任务。标题截取至 120 字符、正文至 240 字符、下一步至 500 字符；完整内容在链接的原始事件中。未关闭清单较长时应读取 TASKS.md，不把断点当成完整台账。
 
-## 文献记录
+## 记录间的显式关联
+
+所有记录均可带可选 links 数组，每项包含 target（已存在事件 ID）、relation 和 reason（具体关联理由）。不带 links 的旧记录继续兼容。
+
+关系有方向：来源记录 references 目标表示“来源引用目标”；informs 表示“来源为目标提供参考”；depends_on 表示“来源依赖目标”。这些仅是记录者声明的关系，不表示系统验证了科学支持或执行依赖，也不自动阻止/完成任务。
+
+例如先将论文入库并获得 ID，再给任务 JSON 添加以下字段。将占位文字换成真实返回的 32 位 ID，不能直接照抄占位文字运行：
+
+```json
+"links": [
+  {"target": "替换为已入库事件ID", "relation": "references", "reason": "任务采用该论文作为基线候选，方法是否适用仍需验证"}
+]
+```
+
+```powershell
+python -X utf8 "<script>" related --root "<root>" --id "事件ID"
+python -X utf8 "<script>" graph --root "<root>"
+```
+
+related 返回 outgoing（引用哪些记录）、incoming（被哪些当前记录引用）。按精确 ID 查询，不自动扩展至同一记录的其他版本。graph 输出 nodes/edges 的 JSON，RELATIONS.md 和 RELATIONS.json 是其自动生成视图；并非交互式可视化或自动推断图谱。
+
+目标更新后，原边继续指向历史版本；JSON 用 is_current=false 和 latest_id 指出新版。来源修订时须提交完整 links；省略或传空数组表示新版不再保留这些关联，旧版原始记录仍保存。已被替代来源的边不出现在当前图中，查旧关系应读历史事件。
+
+关联目标必须先入库。自引、未知目标和重复的目标/关系组合均拒绝；一个新修订可以引用自己的旧版本，表示明确的历史参考。校验和恢复也会检查关联是否完整，关系数据随事件一起备份。升级先备份后 render 重建视图；含新字段的事件不保证旧程序能读取。
+
+## 文献笔记格式
 
 paper 类型额外要求以下完整对象，其余类型不能有 paper：
 

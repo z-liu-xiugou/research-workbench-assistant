@@ -12,11 +12,12 @@ import sys
 import tempfile
 import uuid
 
-VERSION = "0.1.0a4"
+VERSION = "0.1.0a5"
 BACKUP_LIMIT = 64 * 1024 * 1024
 BACKUP_CORE = ("config.json", "PERSONAL_NOTES.md", "PROJECT_MANUAL.md")
 STATUSES = ("已确认", "进行中", "计划中", "候选方案", "待确认", "AI建议")
 TASK_STATES = ("todo", "in_progress", "done", "cancelled")
+RELATIONS = ("references", "informs", "depends_on")
 KINDS = ("progress", "task", "decision", "issue", "experiment", "material", "checkpoint", "paper")
 
 
@@ -80,7 +81,7 @@ def normalize_doi(value):
 def validate(data):
     if not isinstance(data, dict):
         raise ValueError("记录必须是 JSON 对象")
-    allowed = {"kind", "status", "title", "body", "evidence", "next_step", "paper", "supersedes", "task_state"}
+    allowed = {"kind", "status", "title", "body", "evidence", "next_step", "paper", "supersedes", "task_state", "links"}
     if set(data) - allowed:
         raise ValueError("未知字段：" + ", ".join(sorted(set(data) - allowed)))
     for key in ("kind", "status", "title", "body"):
@@ -92,6 +93,21 @@ def validate(data):
         raise ValueError("evidence 必须是非空字符串组成的数组")
     if data["status"] == "已确认" and not evidence:
         raise ValueError("已确认记录必须提供 evidence；工具不替用户判断证据真实性")
+    links = data.get("links", [])
+    if not isinstance(links, list):
+        raise ValueError("links 必须是关联对象数组")
+    seen_links = set()
+    for link in links:
+        if not isinstance(link, dict) or set(link) != {"target", "relation", "reason"}:
+            raise ValueError("每条关联必须包含 target、relation、reason")
+        for key in link:
+            required_text(link, key)
+        if not re.fullmatch(r"[0-9a-f]{32}", link["target"]) or link["relation"] not in RELATIONS:
+            raise ValueError("关联目标 ID 或关系类型无效")
+        pair = (link["target"], link["relation"])
+        if pair in seen_links:
+            raise ValueError("同一目标和关系不能重复")
+        seen_links.add(pair)
     if "task_state" in data:
         if data["kind"] != "task" or data["task_state"] not in TASK_STATES:
             raise ValueError("task_state 仅用于 task，取值为 todo/in_progress/done/cancelled")
@@ -151,6 +167,8 @@ def load(root):
             raise ValueError("supersedes 必须指向尚未被替代的历史记录")
         if previous:
             replaced.add(previous)
+        if any(link["target"] not in known for link in row["record"].get("links", [])):
+            raise ValueError("关联必须指向先前已存在的事件，不能自引或悬空")
         known.add(row["id"])
     return config, rows
 
@@ -181,7 +199,37 @@ def brief(row):
             f"  {body}\n  [完整记录](events/{row['id']}.json)\n")
 
 
-def section(row):
+def relationship_graph(rows):
+    """当前记录的显式关联；保留引用的准确历史版本，不静默重定向。"""
+    live = current(rows)
+    live_ids = {row["id"] for row in live}
+    edges = [dict(source=row["id"], **link) for row in live for link in row["record"].get("links", [])]
+    included = live_ids | {edge["target"] for edge in edges}
+    successors = {row["record"]["supersedes"]: row["id"] for row in rows if row["record"].get("supersedes")}
+    nodes = []
+    for row in rows:
+        if row["id"] not in included:
+            continue
+        latest = row["id"]
+        while latest in successors:
+            latest = successors[latest]
+        nodes.append({"id": row["id"], "title": row["record"]["title"], "kind": row["record"]["kind"],
+                      "status": row["record"]["status"], "is_current": row["id"] in live_ids, "latest_id": latest})
+    return {"nodes": nodes, "edges": edges,
+            "note": "仅展示显式记录的关系，不代表已验证的因果关系或科学证据"}
+
+
+def related(rows, identifier):
+    if identifier not in {row["id"] for row in rows}:
+        raise ValueError("找不到事件 ID：" + identifier)
+    graph = relationship_graph(rows)
+    return {"id": identifier,
+            "outgoing": [edge for edge in graph["edges"] if edge["source"] == identifier],
+            "incoming": [edge for edge in graph["edges"] if edge["target"] == identifier],
+            "note": "仅查询当前来源记录的关联；历史来源的关联请读取其原始事件。目标版本不自动替换。"}
+
+
+def section(row, prefix=""):
     data = row["record"]
     result = f"## [{data['status']}] {data['title']}\n\n{data['body']}\n\n"
     result += f"类型：{data['kind']} · ID：{row['id']} · UTC：{row['created_at']}\n\n"
@@ -191,6 +239,10 @@ def section(row):
         result += "下一步：" + data["next_step"] + "\n\n"
     if data.get("evidence"):
         result += "证据（引用不等于已核验）：\n\n" + "\n".join("- " + x for x in data["evidence"]) + "\n\n"
+    if data.get("links"):
+        result += "显式关联（不自动验证）：\n\n" + "".join(
+            f"- {link['relation']} → [{link['target']}]({prefix}events/{link['target']}.json)：{link['reason']}\n"
+            for link in data["links"]) + "\n"
     if "paper" in data:
         paper = data["paper"]
         for key, label in (("authors", "作者"), ("year", "年份"), ("doi", "DOI"), ("venue", "期刊/会议"), ("tags", "标签")):
@@ -226,9 +278,20 @@ def views(config, rows):
     result["PAPER_INDEX.md"] = "# 当前文献目录\n\n" + banner + "".join(
         "- " + row["record"]["title"].replace("\n", " ") + " — [笔记](notes/" + row["id"] + ".md) · "
         + str(row["record"]["paper"].get("year", "年份未知")) + "\n" for row in papers)
+    graph = relationship_graph(rows)
+    result["RELATIONS.json"] = encode(graph)
+    labels = {node["id"]: " ".join(node["title"].split())[:120] for node in graph["nodes"]}
+    result["RELATIONS.md"] = "# 显式关联清单\n\n" + banner + graph["note"] + "\n\n" + "".join(
+        f"- {labels[edge['source']]} [来源](events/{edge['source']}.json) — {edge['relation']} → "
+        f"{labels[edge['target']]} [目标版本](events/{edge['target']}.json)\n  理由：{edge['reason']}\n"
+        for edge in graph["edges"])
+    historical = [node for node in graph["nodes"] if not node["is_current"]]
+    if historical:
+        result["RELATIONS.md"] += "\n## 引用了旧版本，需人工核对\n\n" + "".join(
+            f"- {node['id']} → [最新版本](events/{node['latest_id']}.json)（原关联未自动改变）\n" for node in historical)
     for row in rows:
         if row["record"]["kind"] == "paper":
-            result["notes/" + row["id"] + ".md"] = banner + section(row)
+            result["notes/" + row["id"] + ".md"] = banner + section(row, prefix="../")
             result["notes/" + row["id"] + ".json"] = encode(row)
     return result
 
@@ -265,6 +328,8 @@ def record(root, data):
         previous = data.get("supersedes")
         if previous and previous not in {row["id"] for row in current(rows)}:
             raise ValueError("supersedes 必须指向当前有效记录的 ID")
+        if any(link["target"] not in {row["id"] for row in rows} for link in data.get("links", [])):
+            raise ValueError("关联目标尚不存在，请先入库目标记录")
         doi = data.get("paper", {}).get("doi")
         if doi:
             for existing in current(rows):
@@ -364,7 +429,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--version", action="version", version=VERSION)
     commands = parser.add_subparsers(dest="command", required=True)
-    for command in ("init", "record", "resume", "render", "audit", "search", "tasks", "backup", "restore"):
+    for command in ("init", "record", "resume", "render", "audit", "search", "tasks", "backup", "restore", "graph", "related"):
         sub = commands.add_parser(command)
         sub.add_argument("--root", type=Path, required=True, help="工作台目录，不是技能安装目录")
         if command == "init":
@@ -380,6 +445,8 @@ def main(argv=None):
             sub.add_argument("--output", type=Path, required=True)
         elif command == "restore":
             sub.add_argument("--input", type=Path, required=True)
+        elif command == "related":
+            sub.add_argument("--id", required=True, help="精确事件 ID，不自动跳到最新版本")
     args = parser.parse_args(argv)
     try:
         root = args.root.absolute() if args.command == "restore" else args.root.resolve()
@@ -411,6 +478,9 @@ def main(argv=None):
             print(encode(backup(root, args.output)))
         elif args.command == "restore":
             print(encode(restore(args.input, root)))
+        elif args.command in ("graph", "related"):
+            _, rows = load(root)
+            print(encode(relationship_graph(rows) if args.command == "graph" else related(rows, args.id)))
         return 0
     except (OSError, ValueError, KeyError, TypeError) as error:
         print("错误：" + str(error), file=sys.stderr)
