@@ -3,14 +3,18 @@ import argparse
 from contextlib import contextmanager
 from datetime import datetime, timezone
 import json
+import hashlib
 import os
 from pathlib import Path
 import re
+import shutil
 import sys
 import tempfile
 import uuid
 
-VERSION = "0.1.0a3"
+VERSION = "0.1.0a4"
+BACKUP_LIMIT = 64 * 1024 * 1024
+BACKUP_CORE = ("config.json", "PERSONAL_NOTES.md", "PROJECT_MANUAL.md")
 STATUSES = ("已确认", "进行中", "计划中", "候选方案", "待确认", "AI建议")
 TASK_STATES = ("todo", "in_progress", "done", "cancelled")
 KINDS = ("progress", "task", "decision", "issue", "experiment", "material", "checkpoint", "paper")
@@ -126,6 +130,8 @@ def load(root):
     if not isinstance(config, dict) or config.get("schema_version") != 1:
         raise ValueError("不支持的工作台 schema_version")
     required_text(config, "name")
+    if not bounded(root, "events").is_dir():
+        raise ValueError("原始事件目录 events 缺失；请从备份恢复，不要按空工作台继续")
     rows = []
     for path in sorted(bounded(root, "events").glob("*.json")):
         row = read_json(bounded(root, "events/" + path.name))
@@ -284,11 +290,81 @@ def audit(root):
             "note": "仅检查结构与视图一致性，不代表已验证科研结论或证据真实性"}
 
 
+def backup_name(name):
+    return isinstance(name, str) and (name in BACKUP_CORE or
+            re.fullmatch(r"events/[0-9a-f]{32}\.json", name) is not None)
+
+
+def backup(root, output):
+    """只保存受管理的原始记录和手写文件，不打包论文、密钥或派生视图。"""
+    output = output.absolute()
+    if output.resolve().is_relative_to(root.resolve()):
+        raise ValueError("备份文件必须放在工作台目录之外")
+    with locked(root):
+        _, rows = load(root)
+        names = list(BACKUP_CORE) + ["events/" + row["id"] + ".json" for row in rows]
+        if len(names) > 10000:
+            raise ValueError("备份最多支持 10000 个文件")
+        files = {}
+        total = 0
+        for name in names:
+            path = bounded(root, name)
+            if not path.exists() and name != "config.json":
+                if name in BACKUP_CORE:
+                    continue
+            total += path.stat().st_size
+            if total > BACKUP_LIMIT:
+                raise ValueError("备份超过 64 MiB 限制，请改用可信文件备份工具")
+            raw = path.read_bytes()
+            files[name] = {"text": raw.decode("utf-8"), "sha256": hashlib.sha256(raw).hexdigest()}
+        content = encode({"backup_version": 1, "files": files})
+        if len(content.encode("utf-8")) > BACKUP_LIMIT:
+            raise ValueError("备份文件超过 64 MiB 限制")
+        # 排他创建：已有备份（包括同名链接）绝不被覆盖。
+        with output.open("x", encoding="utf-8", newline="\n") as stream:
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        return {"files": len(files), "events": len(rows), "output": str(output),
+                "warning": "未加密；仅含配置、事件、PERSONAL_NOTES、PROJECT_MANUAL，不含论文和其他自建文件"}
+
+
+def restore(archive, root):
+    """验证全部内容后恢复到新目录；不执行备份中的任何内容。"""
+    if root.exists() or root.is_symlink():
+        raise ValueError("恢复目标必须是尚不存在的新目录")
+    if archive.stat().st_size > BACKUP_LIMIT:
+        raise ValueError("备份文件超过 64 MiB 限制")
+    payload = read_json(archive)
+    if not isinstance(payload, dict) or set(payload) != {"backup_version", "files"} or type(payload["backup_version"]) is not int or payload["backup_version"] != 1:
+        raise ValueError("不支持的备份格式")
+    files = payload["files"]
+    if not isinstance(files, dict) or not 1 <= len(files) <= 10000 or "config.json" not in files:
+        raise ValueError("备份文件清单无效")
+    for name, entry in files.items():
+        if not backup_name(name) or not isinstance(entry, dict) or set(entry) != {"text", "sha256"} or not isinstance(entry["text"], str):
+            raise ValueError("备份含非法文件路径或内容")
+        if hashlib.sha256(entry["text"].encode("utf-8")).hexdigest() != entry["sha256"]:
+            raise ValueError("备份完整性校验失败：" + name)
+    # 在隔离临时目录验证事件结构并重建视图，验证失败不创建恢复目标。
+    with tempfile.TemporaryDirectory(prefix="rwa-restore-") as temporary:
+        stage = Path(temporary)
+        (stage / "events").mkdir()
+        for name, entry in files.items():
+            atomic_write(stage / name, entry["text"])
+        config, rows = load(stage)
+        atomic_write(stage / ".gitignore", "*\n!.gitignore\n")
+        render(stage)
+        # copytree 默认拒绝现有目标；磁盘失败可能留下不完整的新目录，绝不覆盖旧项目。
+        shutil.copytree(stage, root)
+    return {"events": len(rows), "name": config["name"], "root": str(root)}
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--version", action="version", version=VERSION)
     commands = parser.add_subparsers(dest="command", required=True)
-    for command in ("init", "record", "resume", "render", "audit", "search", "tasks"):
+    for command in ("init", "record", "resume", "render", "audit", "search", "tasks", "backup", "restore"):
         sub = commands.add_parser(command)
         sub.add_argument("--root", type=Path, required=True, help="工作台目录，不是技能安装目录")
         if command == "init":
@@ -300,9 +376,13 @@ def main(argv=None):
             sub.add_argument("--kind", choices=KINDS)
         elif command == "tasks":
             sub.add_argument("--state", choices=("open", "all", "unspecified", *TASK_STATES), default="open")
+        elif command == "backup":
+            sub.add_argument("--output", type=Path, required=True)
+        elif command == "restore":
+            sub.add_argument("--input", type=Path, required=True)
     args = parser.parse_args(argv)
     try:
-        root = args.root.resolve()
+        root = args.root.absolute() if args.command == "restore" else args.root.resolve()
         if args.command == "init":
             initialize(root, args.name)
             print("工作台已创建：" + str(root))
@@ -327,6 +407,10 @@ def main(argv=None):
         elif args.command == "tasks":
             _, rows = load(root)
             print(encode(tasks(rows, args.state)))
+        elif args.command == "backup":
+            print(encode(backup(root, args.output)))
+        elif args.command == "restore":
+            print(encode(restore(args.input, root)))
         return 0
     except (OSError, ValueError, KeyError, TypeError) as error:
         print("错误：" + str(error), file=sys.stderr)

@@ -4,6 +4,8 @@
 
 ## 已实现
 
+alpha.4 已实现 backup/restore；备份配置、事件、两个人工维护文档，恢复只到新目录。备份不加密，不包含用户论文及其他任意文件。原始 events 目录丢失会拒绝读取。
+
 alpha.3 增加 task_state、tasks 筛选、TASKS.md，以及带原始事件链接的限长续接摘要；本地 25 项通过、1 项符号链接权限跳过。alpha.2 的 GitHub CI 已核实通过。
 
 alpha.2 已补充文献元数据、DOI 归一化与重复入库保护，以及 PAPER_INDEX.md 当前文献目录。

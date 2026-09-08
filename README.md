@@ -8,7 +8,7 @@
 
 面向研究生的本地科研记录助手，以 Codex Skill 形式使用：记录目标、进展、问题和下一步，在新对话中按需续接；文献笔记保存为 Markdown 和 JSON。
 
-> **v0.1.0-alpha.3：早期可用版。** 已提供可安装 Skill 和可运行的记录工具，适合个人试用。尚不是全自动科研平台，也不保证 AI 内容准确。
+> **v0.1.0-alpha.4：早期可用版。** 已提供可安装 Skill 和可运行的记录工具，适合个人试用。尚不是全自动科研平台，也不保证 AI 内容准确。
 
 ## 五分钟开始
 
@@ -101,3 +101,7 @@ python -X utf8 -m unittest discover -s tests -v
 Apache-2.0 开源。非 OpenAI 官方项目；开源或获得 Star 不保证获得任何赞助计划资格。
 
 文献库现支持作者、年份、DOI、期刊/会议和标签；同 DOI 重复入库会被拒绝，修订保留历史。PAPER_INDEX.md 提供当前文献目录。DOI 仅检查格式，不联网验证；无 DOI 不自动去重。
+
+## 备份与恢复
+
+新增 backup/restore：备份配置、原始事件、PERSONAL_NOTES.md 和 PROJECT_MANUAL.md；恢复前校验完整性与结构，只写入新目录，不覆盖已有项目。命令见[记录格式](skills/research-workbench/references/records.md#本地备份与安全恢复)。备份未加密，不包含论文、实验数据或其他自建文件，请另行保存这些材料。
