@@ -12,7 +12,7 @@ description: 为本地科研项目维护工作台、进展台账、跨对话记�
 - 使用用户指定的项目。默认工作台是项目内 `research-workbench/`，不要把安装目录当作工作台。
 - 已有其他科研工作台时，先定位并询问是否另建；不要自动迁移、覆盖或全盘扫描。
 - 默认用 `resume --root` 获取轻量读取计划，只读 `research-workbench/ACTIVE_CONTEXT.md`。新对话只是换上下文，不代表进入新研究阶段。
-- 按断点读取与本次问题相关的少量记录。需要文献时先用 `search --kind paper`，再读取命中的 notes JSON/Markdown，必要时才读原文。
+- 按断点读取与本次问题相关的少量记录。需要文献时先用 `search --kind paper --query` 获取最多 10 条摘要，再用 `show --id` 读取选中记录，必要时才读原文。结果有 next_offset 时只按需要翻页，摘要不是完整证据；历史版本看 is_current/latest_id，不静默当作当前结论。详细参数见 records.md。
 - 断点缺失、已知证据冲突、研究范围实质变化、正式交付、证据不足或用户明确要求审计时，按 records.md 的 `resume --reason` 路由（缺失自动识别），再实际读取 PROJECT_MANUAL、CURRENT_STATUS、相关台账和最近日志。返回 review_required 只是计划，不等于已完成审查。不要为判断是否升级而先扫描全部记录；不确定时说明证据缺口。`audit` 检查结构、视图及引用位置，不验证科研事实。
 - 无工作台且用户要求建立时，用脚本 `init`；已有目录会拒绝覆盖。不要仅因用户问一个科研问题就创建文件。
 

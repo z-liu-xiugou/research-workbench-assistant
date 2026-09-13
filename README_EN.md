@@ -4,7 +4,9 @@
 
 Keep research progress in your project after an AI conversation ends.
 
-**v0.1.0-alpha.7** is an early local Codex Skill with a standard-library Python helper. It supports research records, checkpoints, versioned notes, and online Crossref discovery with a separate candidate queue. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
+**v0.1.0-alpha.8** is an early local Codex Skill with a standard-library Python helper. It supports research records, checkpoints, versioned notes, and online Crossref discovery with a separate candidate queue. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
+
+Local search now returns paginated summaries (10 by default), with kind/status filters and title-first ranking. Use show --id for an exact full record and its current-version status. Breaking CLI output change: search returns one JSON object with items/total/next_offset; --full returns full events for the selected page. Storage needs no migration. This reduces conversation output, not the local cost of loading/validating the event store.
 
 New v2 events require locatable evidence for confirmed/in-progress records and an explicit user-confirmation reference for confirmed status. Legacy v1 events remain unchanged and produce audit warnings. Resume now returns a JSON reading plan, not just Markdown; it does not execute a full research review. Added a rebuildable decisions/issues view and known-secret regression scanning. See the [acceptance notes and limits](docs/ISSUE_ACCEPTANCE.md).
 

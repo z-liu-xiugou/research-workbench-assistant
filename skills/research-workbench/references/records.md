@@ -45,6 +45,20 @@ v2 的已确认和进行中必须含非空 evidence，且每项是以下之一�
 
 ## 任务跟踪与续接
 
+### 本地检索与按需读取（alpha.8）
+
+`search` 默认返回一个 JSON 对象：total 是当前记录总命中数，items 是本页摘要，next_offset 非空时可继续翻页。默认每页 10 条，`--limit` 支持 1–50，`--offset` 为非负整数；可组合 `--kind` 和 `--status`。标题命中优先，同组最新事件优先。大小写不敏感的字面匹配覆盖事件 JSON（含文献元数据），不是语义/向量搜索；空检索词拒绝执行。
+
+```powershell
+python -X utf8 "<script>" search --root "<root>" --query "基线" --kind experiment --status "计划中" --limit 5
+python -X utf8 "<script>" search --root "<root>" --query "基线" --kind experiment --status "计划中" --offset 5 --limit 5
+python -X utf8 "<script>" show --root "<root>" --id "替换成结果中的32位ID"
+```
+
+翻页时保持检索词和筛选参数一致；并发新增记录时分页不是固定快照，结果位置可能变化。摘要标题最多 120 字符、正文最多 240 字符，不直接输出长篇文献笔记。元数据命中的词未必出现在摘要中，应按 ID 核对全文。`show` 返回指定版本完整 event，以及 is_current/latest_id；不会自动换成新版本或修改数据。
+
+兼容性提醒：alpha.7 及更早的 search 会直接连续打印全部完整事件；alpha.8 改为分页 JSON 对象。自动化调用者需从 items 取结果；`--full` 可获取本页完整事件，但不恢复旧的无界输出格式。旧记录无需迁移。search/show 本地仍读取并校验事件库，本次优化的是对话输出量，不承诺大规模索引性能；正常 resume 仍只读取断点。
+
 task 类型可以使用 task_state 字段：todo（待办）、in_progress（执行中）、done（完成）、cancelled（取消）。它表示任务执行情况，不代替 status 的研究判断。完成必须提供非空 evidence；程序不核实证据真假。只有实际完成且有依据才标记 done，不能因为生成了一段分析就自动完成实验任务。
 
 修改任务时用 supersedes 指向旧事件 ID，并提交完整记录；可取消或重新打开任务，旧版本保留。旧任务缺少 task_state 时显示 unspecified，不推断为已完成。tasks 默认输出未关闭任务 JSON 数组；--state all/done/cancelled/todo/in_progress/unspecified 可筛选。TASKS.md 自动按状态分组，不要手改。

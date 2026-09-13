@@ -8,7 +8,9 @@
 
 面向研究生的本地科研记录助手，以 Codex Skill 形式使用：记录目标、进展、问题和下一步，在新对话中按需续接；文献笔记保存为 Markdown 和 JSON。
 
-> **v0.1.0-alpha.7：早期可用版。** 已提供可安装 Skill、科研记录和 Crossref 在线文献发现，适合个人试用。尚不是全自动科研平台，也不保证 AI 内容准确。
+> **v0.1.0-alpha.8：早期可用版。** 已提供可安装 Skill、科研记录和 Crossref 在线文献发现，适合个人试用。尚不是全自动科研平台，也不保证 AI 内容准确。
+
+新增“先搜摘要，再按需读全文”：本地检索默认最多 10 条短摘要，可按记录类型/状态筛选和翻页，再用 show 读取选定记录，避免长笔记一次占满对话。旧版 search 的输出格式有所变化，[参数与升级说明](skills/research-workbench/references/records.md)。
 
 本次补齐 v0.1 的证据约束与验收：进行中/已确认记录需要可定位证据，已确认还须记录用户明确确认的出处；增加决策与问题汇总和可测试的轻量续接路由。旧事件不改写，升级审计会提示需人工复核。[升级规则与格式](skills/research-workbench/references/records.md) · [验收证据](docs/ISSUE_ACCEPTANCE.md)
 
