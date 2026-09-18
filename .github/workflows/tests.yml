@@ -1,9 +1,16 @@
 name: tests
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # UTC 01:17 = 北京时间 09:17；GitHub 调度可能延迟。
+    - cron: '17 1 * * *'
 permissions:
   contents: read
 jobs:
   test:
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
