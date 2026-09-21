@@ -18,6 +18,28 @@ alpha.7 同时升级记录规则：新增事件用 v2，已确认/进行中需�
 
 ## 2. 在真正的研究项目中使用
 
+首次试用可按 [10 分钟验收清单](USER_TRIAL.md) 检查安装、记录、续接与恢复。
+
+### alpha.8 搜索升级
+
+旧事件无需迁移。search 返回对象，结果数组现在位于 `items`；消费旧数组输出的脚本需要适配。默认每页 10 条，`--limit` 范围 1–50；`--full` 只返回当前页全文，不代表全部结果。`next_offset` 为 null 表示最后一页。
+
+在仓库根目录，用已有的虚构演示工作台运行以下 PowerShell 示例。没有命中时跳过 show；下一页读取前若新增或修订记录，结果可能变化。
+
+```powershell
+$wb = 'skills/research-workbench/scripts/workbench.py'
+$demoRoot = 'demo/research-workbench'
+$page = python -X utf8 $wb search --root $demoRoot --query '基线' --limit 1 | ConvertFrom-Json
+if ($page.items.Count -gt 0) {
+    python -X utf8 $wb show --root $demoRoot --id $page.items[0].id
+}
+if ($null -ne $page.next_offset) {
+    python -X utf8 $wb search --root $demoRoot --query '基线' --limit 1 --offset $page.next_offset
+}
+```
+
+安装器现在先复制到临时目录，成功后才发布技能。普通复制失败可直接重试。若进程被强制结束留下 `.research-workbench.install.lock`，先确认没有安装进程，再移走该锁；不要删除已经安装的技能或整个技能父目录。
+
 在 Codex 打开研究项目，使用 `$research-workbench` 请求初始化。Skill 会调用随包脚本，在项目内创建 research-workbench/。它不修改已有 AGENTS.md，也不迁移已有私有助手。
 
 希望减少每次输入技能名，可自行向项目 AGENTS.md 追加以下约定，保留已有规则：

@@ -3,14 +3,29 @@ import argparse
 from pathlib import Path
 import shutil
 import sys
+import tempfile
+import os
 
 
 def install(destination):
     source = Path(__file__).resolve().parents[1] / "skills" / "research-workbench"
     target = destination.expanduser().resolve() / source.name
-    if target.exists():
+    if os.path.lexists(target):
         raise FileExistsError("已有同名 Skill，请先备份并移走旧目录：" + str(target))
-    shutil.copytree(source, target, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    target.parent.mkdir(parents=True, exist_ok=True)
+    # 独占锁让本安装器的并发调用不能同时发布同名技能。
+    lock = target.parent / ("." + source.name + ".install.lock")
+    with lock.open("x", encoding="utf-8"):
+        pass
+    try:
+        with tempfile.TemporaryDirectory(prefix=".research-workbench-install-", dir=target.parent) as staging:
+            staged = Path(staging) / source.name
+            shutil.copytree(source, staged, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+            if os.path.lexists(target):
+                raise FileExistsError("安装期间出现同名目录，已停止：" + str(target))
+            staged.rename(target)
+    finally:
+        lock.unlink()
     return target
 
 

@@ -76,3 +76,10 @@ backup/restore preserve managed configuration, events, PERSONAL_NOTES.md and PRO
 ## Explicit research links
 
 Records support links with a target event ID, relation and reason. related queries incoming/outgoing links; graph and RELATIONS.md/JSON expose the current relationship set. References keep their exact historical target, with latest-version hints. No automatic inference, scientific validation or interactive graph UI is included.
+# Maintenance and trial notes
+
+From alpha.8, `search` returns an object with `items`, `total`, and `next_offset`, not a bare array. Existing events need no migration; callers must read `items`. The default page size is 10 and `--limit` accepts 1–50. `--full` returns full events for the current page only. Follow `next_offset` until null and use `show --id` for an exact record. See the executable PowerShell example in [Getting started](docs/GETTING_STARTED.md).
+
+The installer stages a complete copy before publishing and serializes concurrent installations using an exclusive lock. Ordinary copy failures can be retried. After forced termination, remove a leftover installation lock only after confirming no installer is running. Existing installations are never intentionally overwritten.
+
+First-time volunteers can follow the [10-minute trial checklist](docs/USER_TRIAL.md) and submit the trial feedback Issue template. External acceptance remains pending until real feedback arrives.
