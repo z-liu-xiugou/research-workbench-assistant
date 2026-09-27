@@ -122,3 +122,9 @@
 - 核实 9 月 19/20 日 schedule 运行成功；这仍是健康检查，不是 AI 修复。
 
 - da38b3d 的远端 CI 35548782226 四组通过，#7/#8 已关闭。新建 #10 跟踪运行器报告的 Node 20 Actions 弃用和 Ubuntu 镜像迁移；#9 继续等待外部真人反馈。
+
+## WL-20260927-014｜CI 兼容性维护与 Issue 核验
+
+- 2026-09-27：#10 已完成，提交 5d15643 升级 Node 24 Actions 并固定 Ubuntu 24.04；CI 36306592914 四组全部通过。本地 85 项测试中 84 通过、1 权限跳过，公开扫描 0 命中。#9 文档齐备，仍无外部真人反馈，保持开放。
+- 上游版本及完整提交 SHA 已通过官方 API 核验；checkout v7.0.1、setup-python v7.0.0 均使用 Node 24。固定 Linux 大版本以避免自动迁移；不代表已验证 Ubuntu 26。
+- 远端证据：https://github.com/z-liu-xiugou/research-workbench-assistant/actions/runs/36306592914
