@@ -36,15 +36,14 @@
 
 ## 下一步
 
-- #7/#8/#10 已完成并关闭；#9 等待外部真人试用反馈。
-- tests 工作流新增每日北京时间 09:17 调度；范围为测试与公开文件检查。AI 自动修复任务尚未创建，建议指令见 docs/DAILY_MAINTENANCE.md。
-
-1. alpha.8 CI 已通过；每日 schedule 在 9 月 19/20 日均成功。继续收集分页兼容性反馈。
-2. 收集用户安装和新对话续接反馈；尚未进行独立用户端 Codex 对话验收。
-3. 收集 Crossref 检索及筛选反馈；评估下一来源和合法全文阅读流程。仍无全文下载/PDF 解析、无 DOI 条目的自动去重或穷尽检索。
+- 持续维护任务以 `docs/MAINTENANCE_PLAN.md` 为唯一计划清单，共 15 项；本轮仅建立计划，功能尚未实施。
+- 下次默认处理 **M01：梳理版本、发布差异和变更记录**。用户指定编号时优先执行指定项；每轮一个可验收的小任务，完成后回写任务状态与证据。
+- #7/#8/#10 已完成并关闭；#9 由用户后续安排外部真人试用，对应 M15，不阻塞其他任务。
+- 每日 Actions 仅运行测试和公开文件检查，未启用后台 AI 自动维护。
 
 ## 按需读取
 
+- docs/MAINTENANCE_PLAN.md（先查看本轮任务及依赖）
 - README.md
 - skills/research-workbench/SKILL.md
 - skills/research-workbench/references/records.md
