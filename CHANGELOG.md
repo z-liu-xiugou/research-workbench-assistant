@@ -1,9 +1,14 @@
 # Changelog
 
-## Unreleased — 2026-09-21
+本文中的 alpha.2–alpha.8 是开发里程碑，日期为开发记录日期，不代表已建立 GitHub Release。2026-09-27 核对时仅 alpha.1 已发布；下一预览版范围见 [发布准备说明](docs/RELEASE_PREPARATION.md)。
+
+## Unreleased — 0.1.0-alpha.9（整理于 2026-09-27）
 
 - 安装器先复制到临时目录再发布，增加独占安装锁；失败可重试，保留安装期间出现的同名目录。
 - 新增 4 项安装失败/冲突回归；补齐 alpha.8 分页迁移说明、外部试用清单与反馈模板。
+
+- CI 改用完整提交 SHA 固定的 checkout v7.0.1、setup-python v7.0.0（Node 24），Linux 固定 Ubuntu 24.04；配置每日测试和公开文件检查。
+- 建立逐次维护清单，统一主分支版本为 alpha.9 / CLI 0.1.0a9；分发包验证和 Release 发布待后续任务完成。
 
 ## 0.1.0-alpha.8 — 2026-09-13
 

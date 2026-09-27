@@ -1,5 +1,7 @@
 # 安装与使用
 
+本说明对应主分支 `v0.1.0-alpha.9`（CLI：`0.1.0a9`），尚未发布。2026-09-27 核对时 Release 仍为 alpha.1，下载旧发布包不会获得本页全部能力。见[发布范围与升级注意事项](RELEASE_PREPARATION.md)。
+
 ## 1. 安装 Skill，不复制个人研究数据
 
 下载仓库后执行 `python -X utf8 scripts/install.py`。默认目标是用户目录下 `.agents/skills/research-workbench`；Windows、macOS、Linux 使用同一个安装器。仅安装到指定项目时：
@@ -12,7 +14,9 @@ python -X utf8 scripts/install.py --dest "目标项目/.agents/skills"
 
 若 python 不存在，先安装 Python 3.10+ 并重新打开终端；Windows 可用 `py -3` 替换命令中的 python。工具无额外 Python 依赖。
 
-更新时先 `git pull --ff-only`，把已安装的旧 research-workbench 文件夹移动到**技能扫描目录之外**备份，再运行安装器。安装器拒绝自动覆盖，避免丢失本地修改。卸载只移走安装的 Skill 文件夹，项目内科研记录仍保留。不要删除整个 .agents 目录。
+更新前先备份项目工作台和技能目录；旧版没有 backup 命令时，在无写入进程的情况下复制完整工作台。Git 克隆的仓库先 `git pull --ff-only`（下载 ZIP 的用户需另取目标源码包），把已安装的旧 research-workbench 文件夹移动到**技能扫描目录之外**备份，再运行安装器。安装器拒绝自动覆盖，避免丢失本地修改。卸载只移走安装的 Skill 文件夹，项目内科研记录仍保留。不要删除整个 .agents 目录。
+
+在仓库根目录运行 `python -X utf8 skills/research-workbench/scripts/workbench.py --version` 应输出 `0.1.0a9`；已安装副本需使用其实际脚本路径单独核对，拉取仓库不会自动更新安装副本。
 
 alpha.7 同时升级记录规则：新增事件用 v2，已确认/进行中需要可定位证据，已确认还需用户确认出处。旧历史保留不改，audit 会提示人工复核；不要手改旧事件版本号。resume 现在输出包含断点的 JSON 读取计划。[格式与升级说明](../skills/research-workbench/references/records.md)
 
@@ -22,7 +26,7 @@ alpha.7 同时升级记录规则：新增事件用 v2，已确认/进行中需�
 
 ### alpha.8 搜索升级
 
-旧事件无需迁移。search 返回对象，结果数组现在位于 `items`；消费旧数组输出的脚本需要适配。默认每页 10 条，`--limit` 范围 1–50；`--full` 只返回当前页全文，不代表全部结果。`next_offset` 为 null 表示最后一页。
+旧事件无需迁移。search 返回对象，结果数组现在位于 `items`；解析旧版逐条完整事件输出的脚本需要适配。默认每页 10 条，`--limit` 范围 1–50；`--full` 只返回当前页全文，不代表全部结果。`next_offset` 为 null 表示最后一页。
 
 在仓库根目录，用已有的虚构演示工作台运行以下 PowerShell 示例。没有命中时跳过 show；下一页读取前若新增或修订记录，结果可能变化。
 

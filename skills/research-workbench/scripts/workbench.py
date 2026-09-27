@@ -14,7 +14,7 @@ import uuid
 from urllib.parse import urlsplit
 from literature import search_crossref, validate_discovery
 
-VERSION = "0.1.0a8"
+VERSION = "0.1.0a9"
 BACKUP_LIMIT = 64 * 1024 * 1024
 BACKUP_CORE = ("config.json", "PERSONAL_NOTES.md", "PROJECT_MANUAL.md")
 STATUSES = ("已确认", "进行中", "计划中", "候选方案", "待确认", "AI建议")

@@ -4,13 +4,15 @@
 
 Keep research progress in your project after an AI conversation ends.
 
-**v0.1.0-alpha.8** is an early local Codex Skill with a standard-library Python helper. It supports research records, checkpoints, versioned notes, and online Crossref discovery with a separate candidate queue. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
+**Main branch: v0.1.0-alpha.9 (unreleased preview)** is an early local Codex Skill with a standard-library Python helper. It supports research records, checkpoints, versioned notes, and online Crossref discovery with a separate candidate queue. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
 
 Local search now returns paginated summaries (10 by default), with kind/status filters and title-first ranking. Use show --id for an exact full record and its current-version status. Breaking CLI output change: search returns one JSON object with items/total/next_offset; --full returns full events for the selected page. Storage needs no migration. This reduces conversation output, not the local cost of loading/validating the event store.
 
 New v2 events require locatable evidence for confirmed/in-progress records and an explicit user-confirmation reference for confirmed status. Legacy v1 events remain unchanged and produce audit warnings. Resume now returns a JSON reading plan, not just Markdown; it does not execute a full research review. Added a rebuildable decisions/issues view and known-secret regression scanning. See the [acceptance notes and limits](docs/ISSUE_ACCEPTANCE.md).
 
 Tasks now support todo/in_progress/done/cancelled, independently of research certainty. Completion requires evidence. The tasks command defaults to open tasks, while TASKS.md groups all current tasks. Older tasks remain unspecified, not assumed completed. Resume uses bounded summaries and source links rather than embedding paper notes. Back up existing workbenches, then render with the updated helper.
+
+As verified on 2026-09-27, the only GitHub Release is alpha.1; this page describes the main branch. The CLI reports `0.1.0a9`, the same version in Python notation. See [release preparation and compatibility notes](docs/RELEASE_PREPARATION.md) before upgrading. Distribution-package validation and publication are still pending.
 
 ## Install
 
@@ -78,7 +80,7 @@ backup/restore preserve managed configuration, events, PERSONAL_NOTES.md and PRO
 Records support links with a target event ID, relation and reason. related queries incoming/outgoing links; graph and RELATIONS.md/JSON expose the current relationship set. References keep their exact historical target, with latest-version hints. No automatic inference, scientific validation or interactive graph UI is included.
 # Maintenance and trial notes
 
-From alpha.8, `search` returns an object with `items`, `total`, and `next_offset`, not a bare array. Existing events need no migration; callers must read `items`. The default page size is 10 and `--limit` accepts 1–50. `--full` returns full events for the current page only. Follow `next_offset` until null and use `show --id` for an exact record. See the executable PowerShell example in [Getting started](docs/GETTING_STARTED.md).
+From alpha.8, `search` returns an object with `items`, `total`, and `next_offset`, instead of printing each complete event separately. Existing events need no migration; callers must parse the JSON object and read `items`. The default page size is 10 and `--limit` accepts 1–50. `--full` returns full events for the current page only. Follow `next_offset` until null and use `show --id` for an exact record. See the executable PowerShell example in [Getting started](docs/GETTING_STARTED.md).
 
 The installer stages a complete copy before publishing and serializes concurrent installations using an exclusive lock. Ordinary copy failures can be retried. After forced termination, remove a leftover installation lock only after confirming no installer is running. Existing installations are never intentionally overwritten.
 
