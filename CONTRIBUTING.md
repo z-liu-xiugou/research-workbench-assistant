@@ -33,7 +33,18 @@ Python 3.10+，不需要安装第三方包。在仓库根目录运行：
 
 ```powershell
 python -X utf8 -m unittest discover -s tests -v
+python -X utf8 scripts/check_public_tree.py
 git diff --check
 ```
+
+涉及安装、技能内容或分发文件的修改，提交后还需验证该提交的源码包：
+
+```powershell
+python -X utf8 scripts/verify_distribution.py --ref HEAD
+```
+
+这个命令使用 Git 中已提交的文件生成 ZIP，在带中文和空格的临时目录安装，再运行安装副本的基本记录与恢复流程。未提交的修改不会进入包中；请核对输出中的完整提交 SHA。它不会更新你正在使用的技能，也不能代替真人在 Codex 中试用。详细检查范围见 [分发包验证](docs/DISTRIBUTION_VALIDATION.md)。GitHub Actions 在现有四组系统/Python 组合中运行同一检查，不重复执行包内完整单元测试。
+
+Actions 依赖更新由 Dependabot 每周检查，只提出 PR，仍需人工检查和合并。范围与完整 SHA 固定规则见 [依赖更新说明](docs/DEPENDENCY_UPDATES.md)。
 
 源代码入口是 skills/research-workbench/scripts/workbench.py，记录约定见同一 Skill 下 references/records.md。修改结构时同时更新校验器、视图、示例和测试。测试必须使用临时目录与虚构资料，不能依赖维护者的私有副本。

@@ -25,3 +25,6 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: python -X utf8 -m unittest discover -s tests -v
       - run: python -X utf8 scripts/check_public_tree.py
+      # 从当前提交打包，运行临时安装副本，验证用户下载源码包后的流程。
+      - name: Verify distribution archive and isolated installation
+        run: python -X utf8 scripts/verify_distribution.py --ref HEAD
