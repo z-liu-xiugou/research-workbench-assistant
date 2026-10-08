@@ -10,7 +10,7 @@
 
 > **主分支：v0.1.0-alpha.9（尚未发布的预览版）。** 已提供可安装 Skill、科研记录和 Crossref 在线文献发现，适合个人试用。尚不是全自动科研平台，也不保证 AI 内容准确。
 
-2026-09-27 核对时，GitHub Release 仍为 alpha.1；本页描述主分支能力。下一版范围、兼容性变化和发布前步骤见[发布准备说明](docs/RELEASE_PREPARATION.md)。
+2026-10-08 核对时，GitHub Release 仍为 alpha.1；本页描述主分支能力。下一版范围、兼容性变化和发布前步骤见[发布准备说明](docs/RELEASE_PREPARATION.md)。
 
 新增“先搜摘要，再按需读全文”：本地检索默认最多 10 条短摘要，可按记录类型/状态筛选和翻页，再用 show 读取选定记录，避免长笔记一次占满对话。旧版 search 的输出格式有所变化，[参数与升级说明](skills/research-workbench/references/records.md)。
 
@@ -62,8 +62,20 @@ $research-workbench 继续上次研究。先读当前断点，只加载这次任
 | 在线文献发现 | Crossref 主题/年份查询，DOI 去重，来源与检索批次留痕 |
 | 候选文献队列 | 待筛选、保留、排除；已有笔记自动关联，不等于人工已读 |
 | 检查与恢复 | 校验结构、发现视图不一致、从历史记录重建 |
+| 只读诊断 | 检查技能文件、版本、目录权限、锁和工作台配置，默认隐藏个人路径 |
 
 **还不能做：** 自动下载/解析 PDF、内置 Google Scholar/知网/PubMed 等多来源检索、Zotero 同步、后台定时跟踪、自动推断/交互式文献图谱、多人实时协作。Crossref 查询并不覆盖全部论文，候选与实际阅读笔记严格分开。
+
+## 安装或工作台出问题时
+
+在仓库根目录运行：
+
+```powershell
+python -B -X utf8 skills/research-workbench/scripts/workbench.py doctor
+python -B -X utf8 skills/research-workbench/scripts/workbench.py doctor --root demo-workbench
+```
+
+第一条检查正在运行的技能副本，第二条还检查指定工作台的配置与必要目录。要检查已安装版本，请使用它实际的 `workbench.py` 路径。命令只报告问题和建议，不写入工作台或删除锁；默认输出不包含个人绝对路径或研究正文。权限检查只观察系统返回的权限信息，不能保证下一次写入一定成功。状态码和用法见 [只读诊断说明](docs/DIAGNOSTICS.md)。
 
 ## 在线找论文并保存候选
 
@@ -122,6 +134,8 @@ python -X utf8 -m unittest discover -s tests -v
 ```
 
 [贡献说明](CONTRIBUTING.md) · [安全报告](SECURITY.md) · [变更记录](CHANGELOG.md) · [推广文案](docs/LAUNCH_POST.md) · [历史规划](docs/OPEN_SOURCE_ROADMAP.md)
+
+维护者可以用 [分发包验证工具](docs/DISTRIBUTION_VALIDATION.md) 检查指定提交的 ZIP 是否可在独立临时目录安装并完成基础流程。GitHub Actions 在现有四组环境中持续运行该检查；Actions 依赖另由 [Dependabot](docs/DEPENDENCY_UPDATES.md) 每周提出更新 PR，由维护者审查。
 
 历史架构、迁移审计和路线图描述长期目标；当前能力以本 README、实际代码和测试为准。
 

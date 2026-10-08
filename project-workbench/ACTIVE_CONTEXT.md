@@ -1,56 +1,31 @@
 # 当前项目断点
 
-更新时间：2026-09-27
+更新时间：2026-10-08
 
 ## 当前目标
 
-将独立开源仓库完善为可在本地 Codex 安装试用的科研助手，原助手保持不变。
+维护独立开源 research-workbench-assistant，让用户可以安装、记录、诊断和恢复科研工作台。维护任务以 docs/MAINTENANCE_PLAN.md 为入口。
 
-## 本次维护
+## 最新授权与已确认产出
 
-2026-09-27：#10 已完成，提交 5d15643 升级 Node 24 Actions 并固定 Ubuntu 24.04；CI 36306592914 四组全部通过。本地 85 项测试中 84 通过、1 权限跳过，公开扫描 0 命中。#9 文档齐备，仍无外部真人反馈，保持开放。
+- 用户要求批量维护并提交远端；本轮完成 M02/M04/M12/M13，M01 已于前轮完成。
+- M02：指定 Git 提交的 ZIP 在中文/空格临时路径安装；删除解包源码后运行安装副本，24 步验证通过，恢复前后原始记录字节一致；14 项故障回归通过。
+- M04：doctor 只读诊断版本、技能文件、静态目录权限、两类锁、工作台配置和必要路径；默认隐藏个人路径，输出中文建议，退出 0/1/2。不读取研究事件、不删除锁、不修复视图。
+- M12：每周一北京时间 09:30 检查 Actions 版本，最多 3 个更新 PR，完整 SHA 固定、人工审查。GitHub Dependabot 检查任务成功，尚无实际更新 PR。
+- M13：现有 Windows/Linux × Python 3.10/3.12 四组 CI 新增当前提交包的独立安装流程检查。
 
-## 已实现
+## 实现证据与边界
 
-- 2026-09-27：M01 完成。主分支统一为 alpha.9 未发布预览版（CLI 0.1.0a9）；累计差异、兼容性和发布说明见 docs/RELEASE_PREPARATION.md。Release 仍为 alpha.1，未建立新标签；下一步先做 M02。
+- 实现提交：9ec8302（M12）、e535573（M04）、bbbff1c（M02）、9e0ea70（M13）；均已推送。
+- 本地完整 114 项：112 通过、2 项 Windows 链接权限跳过；公开扫描 0 命中、git diff --check 通过。
+- 实现 SHA 9e0ea70c6f7d8ce8090b86e9464709f05b6de66d 的 tests CI 37724325620 四组测试/扫描/分发包检查全部成功。收尾文档及后续提交应按各自 SHA 检查，不沿用这项证据。
+- 主分支仍为未发布 alpha.9 / CLI 0.1.0a9，Release 仅 alpha.1；本轮没有创建标签或 Release。#9 外部真人试用保持开放。
+- 静态权限通过不保证实际写入成功；锁存在不能判断失效；脚本与包验证不能证明 Codex 加载技能或替代真人试用。
 
-- 2026-09-21：#7 安装失败完整性修复、#8 分页升级说明已实现；#9 试用清单和反馈模板已建立，外部验收仍待真人反馈。85 项本地测试：84 通过、1 权限跳过。
+## 下一步与按需读取
 
-- alpha.8：本地摘要分页检索、类型/状态筛选、标题优先排序、按 ID 查看精确版本；search 输出格式升级，旧事件无需迁移。本地 81 项测试中 80 通过、1 权限跳过。
-
-- alpha.7：补齐证据/确认校验、v2 事件结构、决策问题视图、轻量路由和隐私回归；验收入口见 docs/ISSUE_ACCEPTANCE.md。旧历史保留并提示复核。
-- 实现提交 3bcdb40 的四组 Windows/Linux CI 全部通过，GitHub #1–#6 已附证据关闭；本地 75 项中 74 通过、1 权限跳过。
-
-- alpha.6：Crossref 在线主题/年份查询、批次留痕、DOI 去重、独立候选队列和筛选历史；已有同 DOI 笔记自动链接。真实联网新增 3 篇，重跑新增 0 篇。
-
-- alpha.5：显式关联及理由、双向查询、关系 JSON/Markdown、历史目标版本提示；本地 42 项通过、1 项权限跳过。
-
-- alpha.4：受管理记录的本地备份、哈希和结构校验、新目录安全恢复；不含论文或其他自建文件。
-
-- alpha.3：任务执行状态、未关闭筛选、任务清单和限长续接摘要；本地 26 项测试中 25 通过、1 项权限跳过。
-
-- alpha.2 增加文献作者/年份/DOI/期刊/标签、DOI 去重及当前文献目录；兼容旧记录。
-
-- v0.1.0-alpha.1：自包含 Skill、安装器、初始化、记录、修订历史、续接、搜索、检查与视图重建。
-- Markdown/JSON 文献笔记由同一记录生成；现已内置 Crossref 检索，仍无 PDF 解析。
-- 本地单元测试覆盖安装、路径、写入失败与恢复；GitHub 配置 Windows/Linux 双版本测试。
-- README、安装指南和社区首发文案已更新。
-
-## 下一步
-
-- 持续维护任务以 `docs/MAINTENANCE_PLAN.md` 为唯一计划清单，共 15 项；M01 已完成，其余按表推进。
-- 下次默认处理 **M02：验证分发包的安装与基本流程**。用户指定编号时优先执行指定项；每轮一个可验收的小任务，完成后回写任务状态与证据。
-- #7/#8/#10 已完成并关闭；#9 由用户后续安排外部真人试用，对应 M15，不阻塞其他任务。
-- 每日 Actions 仅运行测试和公开文件检查，未启用后台 AI 自动维护。
-
-## 按需读取
-
-- docs/MAINTENANCE_PLAN.md（先查看本轮任务及依赖）
-- docs/RELEASE_PREPARATION.md（M01 差异与待发布范围）
-- README.md
-- skills/research-workbench/SKILL.md
-- skills/research-workbench/references/records.md
-- skills/research-workbench/scripts/workbench.py
-- tests/test_workbench.py
-- docs/GETTING_STARTED.md
-- docs/LAUNCH_POST.md
+- 下一默认项 M03：核对届时最终提交、CI、标签和实际下载包后发布预览版；若继续开发，可优先 M05 升级预检。
+- docs/MAINTENANCE_PLAN.md、docs/RELEASE_PREPARATION.md、docs/DISTRIBUTION_VALIDATION.md。
+- doctor 相关读取 docs/DIAGNOSTICS.md、skills/research-workbench/scripts/workbench.py、tests/test_doctor.py。
+- CI/依赖读取 .github/workflows/tests.yml、.github/dependabot.yml、docs/DEPENDENCY_UPDATES.md。
+- project-workbench/CURRENT_STATUS.md 首条和 WORKLOG.md 最新条保留详细记录。

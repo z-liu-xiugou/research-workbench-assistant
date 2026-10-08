@@ -12,7 +12,7 @@ New v2 events require locatable evidence for confirmed/in-progress records and a
 
 Tasks now support todo/in_progress/done/cancelled, independently of research certainty. Completion requires evidence. The tasks command defaults to open tasks, while TASKS.md groups all current tasks. Older tasks remain unspecified, not assumed completed. Resume uses bounded summaries and source links rather than embedding paper notes. Back up existing workbenches, then render with the updated helper.
 
-As verified on 2026-09-27, the only GitHub Release is alpha.1; this page describes the main branch. The CLI reports `0.1.0a9`, the same version in Python notation. See [release preparation and compatibility notes](docs/RELEASE_PREPARATION.md) before upgrading. Distribution-package validation and publication are still pending.
+As verified on 2026-10-08, the only GitHub Release is alpha.1; this page describes the main branch. The CLI reports `0.1.0a9`, the same version in Python notation. See [release preparation and compatibility notes](docs/RELEASE_PREPARATION.md) before upgrading. A repeatable distribution-package check is now available; publication remains pending.
 
 ## Install
 
@@ -67,7 +67,20 @@ python -X utf8 -m unittest discover -s tests -v
 
 [Issues](https://github.com/z-liu-xiugou/research-workbench-assistant/issues) · [Discussions](https://github.com/z-liu-xiugou/research-workbench-assistant/discussions) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
 
+Run `python -X utf8 scripts/verify_distribution.py --ref HEAD` after committing changes to check a Git-archive ZIP through an isolated installation, records, search, resume, backup and restore. The command tests committed files, not pending edits. CI runs it on all four OS/Python combinations. [Validation details (Chinese)](docs/DISTRIBUTION_VALIDATION.md).
+
+Actions version updates are checked weekly by Dependabot with a limited number of open PRs. Updates remain pinned to full commit SHAs and require review; there is no automatic merge. [Dependency maintenance (Chinese)](docs/DEPENDENCY_UPDATES.md).
+
 Apache-2.0. Independent project, not an official OpenAI product.
+
+## Read-only diagnosis
+
+```sh
+python -B -X utf8 skills/research-workbench/scripts/workbench.py doctor
+python -B -X utf8 skills/research-workbench/scripts/workbench.py doctor --root demo-workbench
+```
+
+Checks the running skill copy and, optionally, workbench configuration and required paths. To inspect an installed copy, run its own script. JSON output hides personal paths by default. It does not write records, remove locks or read research content. Permission observations cannot guarantee that a later write will succeed, and a lock alone cannot prove that a process is stale. [Diagnosis codes and guidance (Chinese)](docs/DIAGNOSTICS.md).
 
 Paper records now support optional authors, year, DOI, venue and tags. Duplicate current DOIs are rejected; supersedes revisions retain history. PAPER_INDEX.md lists current papers. DOI validation is local and syntactic, not an existence check. Papers without DOIs are not deduplicated.
 

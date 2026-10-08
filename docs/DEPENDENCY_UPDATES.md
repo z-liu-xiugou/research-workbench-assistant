@@ -48,3 +48,5 @@ Dependabot PR 的 GitHub token 默认只读，且不能取得普通 Actions secr
 提交配置前，可以本地解析 YAML，核对官方字段，并检查当前工作流的 PR 触发、权限和测试矩阵。这些检查能够确认配置结构和仓库准备情况。
 
 只有实际观察到 Dependabot 更新 PR、SHA 差异以及该 PR 的 4 组 CI 结果，才能记录机器人更新行为已验证。本地解析通过、普通提交的 CI 通过或暂时没有更新 PR，都不能代替这项观察。
+
+2026-10-08 配置推送后，GitHub 的 Dependabot 检查任务 [37724330712](https://github.com/z-liu-xiugou/research-workbench-assistant/actions/runs/37724330712)、[37724336115](https://github.com/z-liu-xiugou/research-workbench-assistant/actions/runs/37724336115) 均成功，说明 GitHub 已执行检查。核对时仍无开放 PR；尚未观察实际更新 PR、SHA 差异及其 CI，不将检查任务成功记作完整更新流程验收。

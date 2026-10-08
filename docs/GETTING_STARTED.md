@@ -1,6 +1,6 @@
 # 安装与使用
 
-本说明对应主分支 `v0.1.0-alpha.9`（CLI：`0.1.0a9`），尚未发布。2026-09-27 核对时 Release 仍为 alpha.1，下载旧发布包不会获得本页全部能力。见[发布范围与升级注意事项](RELEASE_PREPARATION.md)。
+本说明对应主分支 `v0.1.0-alpha.9`（CLI：`0.1.0a9`），尚未发布。2026-10-08 核对时 Release 仍为 alpha.1，下载旧发布包不会获得本页全部能力。见[发布范围与升级注意事项](RELEASE_PREPARATION.md)。
 
 ## 1. 安装 Skill，不复制个人研究数据
 
@@ -105,6 +105,14 @@ $research-workbench 请阅读我提供的摘要，生成文献笔记并入库。
 目前只管理明确记录的关系，不自动判断因果或推断文献网络。引用旧版本时保留原依据，提示人工核对新版；完整格式见[记录格式](../skills/research-workbench/references/records.md#记录间的显式关联)。
 
 ## 6. 故障恢复
+
+遇到安装、权限、锁或配置问题时，可先运行只读诊断：
+
+```powershell
+python -B -X utf8 skills/research-workbench/scripts/workbench.py doctor --root "你的工作台目录"
+```
+
+将“你的工作台目录”替换成实际目录；省略 `--root` 时只检查技能副本。诊断不会修复、写入或删除文件，默认隐藏个人路径；退出码和中文建议见 [诊断说明](DIAGNOSTICS.md)。命令检查的是正在运行的脚本副本，已安装技能请换成其脚本路径。
 
 新增 backup/restore：前者导出受管理的原始记录与手写笔记，后者先校验再恢复到新目录。完整命令见 [备份与恢复](../skills/research-workbench/references/records.md#本地备份与安全恢复)。备份不是整个项目副本，不含论文与实验数据；未加密，不能随意公开。恢复不会覆盖已有目录。
 

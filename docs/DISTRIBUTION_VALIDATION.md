@@ -64,16 +64,18 @@ python -X utf8 scripts/verify_distribution.py --ref HEAD
 
 `resume` 检查只证明安装副本能返回一致的续接读取计划，不证明 Codex 已发现技能，也不替代 [外部真人试用](USER_TRIAL.md) 或 Issue #9。
 
-2026-10-08 的首次本地执行记录：
+2026-10-08 的本轮实现提交复核记录：
 
 | 项目 | 实测结果 |
 | --- | --- |
-| 被测包源码 SHA | `9ec8302b9036adead9db5847de683f8ae9466c4f` |
+| 被测包源码 SHA | `9e0ea70c6f7d8ce8090b86e9464709f05b6de66d` |
 | 环境 | Windows / AMD64 / Python 3.10.20 |
-| 打包产物 | 82 个 ZIP 成员，67 个文件；`git archive --format=zip` |
-| ZIP SHA-256 | `de59d99c10e2e960fe3be77093686ebd0c1d92e2fa04194f101976041841fe4c` |
+| 打包产物 | 87 个 ZIP 成员，72 个文件；`git archive --format=zip` |
+| ZIP SHA-256 | `b6ea0ef10ae49ff5cdb951a6883a4e34dda7efcd28257fc2a735908798504dca` |
 | 安装后 CLI | `0.1.0a9` |
 | 基本流程 | 24 个实际步骤通过；恢复 2 条事件，1 条当前记录 |
 | 本项回归测试 | 14 项通过，含多个破包子样例 |
+| 完整本地测试 | 114 项中 112 通过、2 项 Windows 链接权限跳过；公开扫描 0 命中 |
+| 远端 CI | [37724325620](https://github.com/z-liu-xiugou/research-workbench-assistant/actions/runs/37724325620)：四组源码测试、公开扫描及包安装验证全部通过 |
 
-上述是首次验证的提交快照。后续提交、标签和 Release 不能沿用该结果作为自身通过证据，应重新执行并保存新的完整 SHA；远端 CI 结果另行核对。
+上述是实现提交的验证快照，包含只读诊断和完整分发检查。后续文档提交、标签和 Release 不能沿用该结果作为自身通过证据，应重新执行并保存新的完整 SHA；CI 会继续检查每次提交的包。
