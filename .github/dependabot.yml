@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # 只提醒 GitHub Actions 更新；合并前仍需人工审查和 CI 验证。
+  - package-ecosystem: "github-actions"
+    # GitHub Actions 使用根目录，Dependabot 会读取 .github/workflows。
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:30"
+      timezone: "Asia/Shanghai"
+    # 这是同时打开的版本更新 PR 上限，不是每周创建总数。
+    open-pull-requests-limit: 3
