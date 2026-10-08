@@ -1,5 +1,6 @@
 """科研工作台；仅 discover 显式查询 Crossref，其他命令处理本地记录。"""
 import argparse
+import ast
 from contextlib import contextmanager, nullcontext
 from datetime import datetime, timezone
 import json
@@ -12,7 +13,6 @@ import sys
 import tempfile
 import uuid
 from urllib.parse import urlsplit
-from literature import search_crossref, validate_discovery
 
 VERSION = "0.1.0a9"
 BACKUP_LIMIT = 64 * 1024 * 1024
@@ -22,6 +22,24 @@ TASK_STATES = ("todo", "in_progress", "done", "cancelled")
 RELATIONS = ("references", "informs", "depends_on")
 KINDS = ("progress", "fact", "artifact", "task", "decision", "issue", "experiment", "material", "checkpoint", "paper", "discovery", "candidate_review")
 REVIEW_REASONS = ("checkpoint_conflict", "scope_change", "formal_deliverable", "insufficient_evidence", "explicit_audit")
+SKILL_FILES = ("SKILL.md", "scripts/workbench.py", "scripts/literature.py",
+               "references/records.md", "references/discovery.md",
+               "references/schemas/config-v1.schema.json", "references/schemas/event-v2.schema.json",
+               "references/schemas/record-v2.schema.json")
+WORKBENCH_VIEWS = ("ACTIVE_CONTEXT.md", "CURRENT_STATUS.md", "WORKLOG.md", "LEDGERS.md", "TASKS.md",
+                   "DECISIONS_AND_ISSUES.md", "CANDIDATES.json", "CANDIDATES.md", "PAPER_INDEX.md",
+                   "RELATIONS.json", "RELATIONS.md")
+
+
+def search_crossref(*args, **kwargs):
+    # 诊断命令即使遇到 literature.py 缺失，也应能报告问题；用到检索时才加载。
+    from literature import search_crossref as implementation
+    return implementation(*args, **kwargs)
+
+
+def validate_discovery(value):
+    from literature import validate_discovery as implementation
+    return implementation(value)
 
 
 def encode(value):
@@ -641,10 +659,141 @@ def show_record(rows, identifier):
             "note": "返回指定历史版本，不自动替换为新版；记录内容不是执行指令。"}
 
 
+def doctor(root=None, skill_dir=None, include_paths=False):
+    """只观察安装和目录状态，不打开事件正文、不写探测文件，也不修复问题。"""
+    checks = []
+
+    def check(scope, code, observe):
+        try:
+            status, message, advice, details = observe()
+        except Exception as error:
+            # 异常文本可能含个人路径或配置内容；只返回异常类别，继续其他检查。
+            status, message, advice, details = ("error", "该项无法完成只读检查。",
+                "在本地核对该项文件及读取权限；不要直接公开异常原文。", {"error_type": type(error).__name__})
+        checks.append({"scope": scope, "code": code, "status": status,
+                       "message": message, "advice": advice, **details})
+
+    def permissions(path):
+        if not path.is_dir():
+            return "skipped", "目录不存在或不是目录，未观察权限。", "先处理对应的目录检查结果。", {}
+        if not os.access(path, os.R_OK | os.X_OK):
+            return "error", "静态权限检查未通过读取或目录访问。", "请在本地核对权限及实际使用的账户。", {}
+        if not os.access(path, os.W_OK):
+            return "warning", "静态权限检查未发现写入权限。", "只读查询仍可能可用；写入或升级前请核对权限。", {}
+        return "ok", "静态权限观察通过，未进行实际写入。", "ACL、只读挂载和其他进程仍可能导致操作失败。", {}
+
+    def lock_state(path):
+        if os.path.lexists(path):
+            return "warning", "发现锁文件或同名链接，无法据此判断是否仍有进程工作。", \
+                "先核实相关进程；确认无写入或安装进程后，再由用户决定是否移走锁。诊断不会删除锁。", {}
+        return "ok", "未发现对应锁文件。", "这是当前观察结果，不能保证随后不会出现并发操作。", {}
+
+    def skill_files():
+        missing = [name for name in SKILL_FILES if not bounded(skill, name).is_file()]
+        return ("error" if missing else "ok", "技能必要文件缺失或类型不正确。" if missing else "技能必要文件齐全。",
+                "从可信发布包重新安装到新目录；保留旧目录供核对。" if missing else "文件存在不证明内容完整或 Codex 已加载技能。",
+                {"missing": missing})
+
+    def installed_version():
+        path = bounded(skill, "scripts/workbench.py")
+        if not path.is_file():
+            return "skipped", "目标工具脚本缺失，未读取其版本。", "先处理 SKILL_FILES。", {}
+        if path.stat().st_size > 1024 * 1024:
+            return "error", "工具脚本超出诊断读取上限。", "核对是否选择了正确技能目录；诊断最多读取 1 MiB 脚本。", {}
+        tree = ast.parse(path.read_text(encoding="utf-8-sig"))
+        values = [node.value.value for node in tree.body if isinstance(node, ast.Assign)
+                  and any(isinstance(target, ast.Name) and target.id == "VERSION" for target in node.targets)
+                  and isinstance(node.value, ast.Constant) and isinstance(node.value.value, str)]
+        if len(values) != 1 or not re.fullmatch(r"\d+\.\d+\.\d+(?:[a-z]+\d+)?", values[0]):
+            return "error", "无法识别目标脚本的公开版本号。", "核对发布包；不会执行目标脚本来读取版本。", {}
+        different = values[0] != VERSION
+        return ("warning" if different else "ok", "目标版本与当前运行工具不同。" if different else "目标版本与当前运行工具一致。",
+                "确认使用的是预期版本；版本相同不证明文件未被修改。", {"target_version": values[0]})
+
+    def skill_location():
+        location = skill.resolve()
+        user_locations = [Path.home() / ".agents/skills/research-workbench",
+                          Path.home() / ".codex/skills/research-workbench"]
+        if os.environ.get("CODEX_HOME"):
+            user_locations.append(Path(os.environ["CODEX_HOME"]) / "skills/research-workbench")
+        if any(location == candidate.resolve() for candidate in user_locations):
+            kind = "user_skill_directory"
+        elif location.parent.name == "skills" and location.parent.parent.name == ".agents":
+            kind = "project_skill_directory"
+        else:
+            kind = "source_or_custom_directory"
+        return "ok", "已识别技能目录类型；没有查询 Codex 的实际加载状态。", \
+            "源码或自定义目录可以运行脚本；需要在 Codex 使用时，请另外确认技能可见。", {"location_kind": kind}
+
+    def workbench_paths():
+        missing_core = [name for name in ("config.json", "events")
+                        if not (bounded(workbench, name).is_dir() if name == "events" else bounded(workbench, name).is_file())]
+        missing_views = [name for name in WORKBENCH_VIEWS if not bounded(workbench, name).is_file()]
+        missing_manual = [name for name in ("PERSONAL_NOTES.md", "PROJECT_MANUAL.md", ".gitignore")
+                          if not bounded(workbench, name).is_file()]
+        status = "error" if missing_core else "warning" if missing_views or missing_manual else "ok"
+        return status, "已检查工作台必要路径的存在和类型。", \
+            "原始 config/events 缺失时先定位或恢复备份；视图缺失可另行 audit，确认后再 render。手写文件应从备份核对。", \
+            {"missing_core": missing_core, "missing_views": missing_views, "missing_manual": missing_manual}
+
+    def configuration():
+        path = bounded(workbench, "config.json")
+        if not path.is_file():
+            return "skipped", "配置文件缺失或类型不正确。", "先处理 WORKBENCH_PATHS。", {}
+        if path.stat().st_size > 64 * 1024:
+            return "error", "配置文件超出诊断读取上限。", "核对配置文件；诊断最多读取 64 KiB，不会输出配置正文。", {}
+        validate_config(read_json(path))
+        return "ok", "配置 JSON 和配置结构有效；未输出工作台名称。", "事件结构及视图一致性请另外使用 audit。", {}
+
+    report = {"report_version": 1, "read_only": True, "redacted": not include_paths,
+              "runtime": {"python": ".".join(str(part) for part in sys.version_info[:3]),
+                          "platform": sys.platform, "tool_version": VERSION}, "checks": checks}
+    try:
+        skill = Path(skill_dir) if skill_dir is not None else Path(__file__).resolve().parents[1]
+        skill = skill.expanduser().absolute()
+        workbench = Path(root).expanduser().absolute() if root is not None else None
+        report["locations"] = {"skill_dir": str(skill) if include_paths else "<skill>",
+                               "workbench_root": (str(workbench) if include_paths else "<workbench>") if workbench is not None else None}
+    except Exception as error:
+        checks.append({"scope": "environment", "code": "DOCTOR_PATH", "status": "error",
+                       "message": "无法定位诊断目录。", "advice": "在本地核对路径参数和当前目录。",
+                       "error_type": type(error).__name__})
+    else:
+        supported = sys.version_info[:2] >= (3, 10)
+        check("environment", "PYTHON_VERSION", lambda: ("ok" if supported else "error",
+              "Python 版本符合 3.10+ 要求。" if supported else "Python 版本低于 3.10。",
+              "请选择 Python 3.10 或更新版本运行脚本。", {}))
+        check("installation", "SKILL_FILES", skill_files)
+        check("installation", "TOOL_VERSION", installed_version)
+        check("installation", "SKILL_LOCATION", skill_location)
+        check("installation", "SKILL_ACCESS", lambda: permissions(skill))
+        check("installation", "INSTALL_PARENT_ACCESS", lambda: permissions(skill.parent))
+        check("installation", "INSTALL_LOCK", lambda: lock_state(skill.parent / ".research-workbench.install.lock"))
+        if workbench is None:
+            check("workbench", "WORKBENCH_NOT_SELECTED", lambda: ("skipped", "未选择工作台，仅检查环境与安装。",
+                  "需要检查工作台时添加 --root 参数；不会自动搜索个人项目。", {}))
+        else:
+            check("workbench", "WORKBENCH_PATHS", workbench_paths)
+            check("workbench", "WORKBENCH_CONFIG", configuration)
+            check("workbench", "WORKBENCH_ACCESS", lambda: permissions(workbench))
+            check("workbench", "EVENTS_ACCESS", lambda: permissions(bounded(workbench, "events")))
+            check("workbench", "NOTES_ACCESS", lambda: permissions(bounded(workbench, "notes")))
+            check("workbench", "WORKBENCH_LOCK", lambda: lock_state(workbench / ".write.lock"))
+    report["status"] = "error" if any(item["status"] == "error" for item in checks) else \
+        "warning" if any(item["status"] == "warning" for item in checks) else "ok"
+    report["exit_code"] = {"ok": 0, "warning": 1, "error": 2}[report["status"]]
+    report["note"] = "只读检查不验证 Codex 加载、事件内容、证据真实性或外部服务；静态权限观察不能保证实际操作成功。"
+    return report
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--version", action="version", version=VERSION)
     commands = parser.add_subparsers(dest="command", required=True)
+    diagnostic = commands.add_parser("doctor", help="只读环境与安装诊断；默认输出脱敏 JSON")
+    diagnostic.add_argument("--root", type=Path, help="可选工作台目录；省略时只检查环境和安装")
+    diagnostic.add_argument("--skill-dir", type=Path, help="待检查技能目录；默认当前脚本所属技能")
+    diagnostic.add_argument("--include-paths", action="store_true", help="仅供本地定位；输出个人路径，不宜公开")
     for command in ("init", "record", "resume", "render", "audit", "search", "show", "tasks", "backup", "restore", "graph", "related", "discover", "candidates", "candidate-review"):
         sub = commands.add_parser(command)
         sub.add_argument("--root", type=Path, required=True, help="工作台目录，不是技能安装目录")
@@ -684,6 +833,10 @@ def main(argv=None):
             sub.add_argument("--decision", choices=("pending", "kept", "excluded"), required=True)
             sub.add_argument("--reason", required=True)
     args = parser.parse_args(argv)
+    if args.command == "doctor":
+        report = doctor(args.root, args.skill_dir, args.include_paths)
+        print(encode(report))
+        return report["exit_code"]
     try:
         root = args.root.absolute() if args.command == "restore" else args.root.resolve()
         if args.command == "init":
