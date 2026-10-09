@@ -86,6 +86,7 @@ M01 将主分支版本入口统一为 alpha.9 未发布状态，不创建标签�
 - 2026-10-08：实现提交 `9e0ea70c6f7d8ce8090b86e9464709f05b6de66d` 的分发包在 Windows / Python 3.10.20 完成 24 步安装与记录恢复验证，包内 72 个文件；详细哈希见 [分发包验收记录](DISTRIBUTION_VALIDATION.md)。完整本地测试 114 项中 112 通过、2 项链接权限跳过，公开扫描 0 命中。
 - 同一实现提交的 [CI 37724325620](https://github.com/z-liu-xiugou/research-workbench-assistant/actions/runs/37724325620) 在 Ubuntu 24.04 / Windows × Python 3.10 / 3.12 四组完成源码测试、公开扫描及分发包验证，全部通过。
 - M02/M04/M12/M13 已完成；仍未创建 alpha.9 标签或 Release。M03 需重新核对届时的最终提交与 CI、发布入口及实际下载包，不能用本轮实现提交证据代替其他提交的验收。
+- 2026-10-09：#12/#13 首版功能提交 1e3b2c4、安装包验证提交 301458a；完整本地 141 项中 138 通过、3 项 Windows 链接权限跳过，加固恢复断言后 14 项分发回归重跑通过。301458a94c6cf035235c6f0c0e86a731589dc2da 的 28 步安装包流程及 [四组 CI 37872448326](https://github.com/z-liu-xiugou/research-workbench-assistant/actions/runs/37872448326) 全部成功；浏览器直接打开本地快照的筛选、来源链接和窄屏布局通过。详细记录见 [外部反馈处理](USER_FEEDBACK_20261009.md)。#9 仍待完整真人验收。
 
 ## M01 核对方式
 

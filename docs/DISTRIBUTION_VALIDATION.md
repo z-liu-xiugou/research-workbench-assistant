@@ -79,3 +79,17 @@ python -X utf8 scripts/verify_distribution.py --ref HEAD
 | 远端 CI | [37724325620](https://github.com/z-liu-xiugou/research-workbench-assistant/actions/runs/37724325620)：四组源码测试、公开扫描及包安装验证全部通过 |
 
 上述是实现提交的验证快照，包含只读诊断和完整分发检查。后续文档提交、标签和 Release 不能沿用该结果作为自身通过证据，应重新执行并保存新的完整 SHA；CI 会继续检查每次提交的包。
+
+2026-10-09 外部反馈功能实现包：
+
+| 项目 | 实测结果 |
+| --- | --- |
+| 被测包源码 SHA | `301458a94c6cf035235c6f0c0e86a731589dc2da` |
+| 环境 / CLI | Windows / AMD64 / Python 3.10.20；`0.1.0a9` |
+| 打包产物 | 97 个 ZIP 成员，81 个文件；`git archive --format=zip` |
+| ZIP SHA-256 | `d646f36f58b3960a6a95622f7adaa40150a0e2542a53e7163feedd5abe92c2f9` |
+| 实际流程 | 28 步全部通过；新增安装文件诊断、项目档案导航、离线总览、恢复后当前记录页再生成 |
+| 回归检查 | 完整 141 项中 138 通过、3 项 Windows 链接权限跳过；加固恢复总览断言后 14 项分发回归重跑通过 |
+| 远端 CI | [37872448326](https://github.com/z-liu-xiugou/research-workbench-assistant/actions/runs/37872448326)：同一 SHA 四组源码测试、公开扫描和分发包验证全部成功 |
+
+该结果不代表新 Release 已发布；具体反馈对应与真人验收边界见 [本轮反馈记录](USER_FEEDBACK_20261009.md)。

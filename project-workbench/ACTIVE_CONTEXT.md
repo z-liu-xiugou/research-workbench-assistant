@@ -1,31 +1,30 @@
 # 当前项目断点
 
-更新时间：2026-10-08
+更新时间：2026-10-09
 
 ## 当前目标
 
-维护独立开源 research-workbench-assistant，让用户可以安装、记录、诊断和恢复科研工作台。维护任务以 docs/MAINTENANCE_PLAN.md 为入口。
+维护独立开源 research-workbench-assistant，按真实反馈完善个人科研工作台。任务入口为 docs/MAINTENANCE_PLAN.md；本轮处理 #12 项目引导与偏好、#13 离线总览。
 
 ## 最新授权与已确认产出
 
-- 用户要求批量维护并提交远端；本轮完成 M02/M04/M12/M13，M01 已于前轮完成。
-- M02：指定 Git 提交的 ZIP 在中文/空格临时路径安装；删除解包源码后运行安装副本，24 步验证通过，恢复前后原始记录字节一致；14 项故障回归通过。
-- M04：doctor 只读诊断版本、技能文件、静态目录权限、两类锁、工作台配置和必要路径；默认隐藏个人路径，输出中文建议，退出 0/1/2。不读取研究事件、不删除锁、不修复视图。
-- M12：每周一北京时间 09:30 检查 Actions 版本，最多 3 个更新 PR，完整 SHA 固定、人工审查。GitHub Dependabot 检查任务成功，尚无实际更新 PR。
-- M13：现有 Windows/Linux × Python 3.10/3.12 四组 CI 新增当前提交包的独立安装流程检查。
+- 用户要求处理远端用户反馈，沿用此前维护与推送授权；M16/M17 首版已实现并推送，M15 已收到使用建议，完整真人试用仍未完成。
+- #12：新项目提供可编辑约定模板，未知留待定；引导可跳过，既有项目只补需要的内容。偏好按项目保存，长期修改留痕；范围变化先展示差异并确认，不把 AI 建议写成已定选题。
+- #13：overview 按需生成可双击离线打开的 OVERVIEW.html，显示断点、下一步、近期进展、任务、候选和笔记；支持搜索、筛选和来源跳转。默认排除被替代记录，不推断真人已读或论文完成比例。
+- 页面只是快照，常规记录与续接不自动生成；派生页面不进入备份，恢复后可重新生成。同名人工页面不被覆盖，写入受既有锁和原子替换保护。
 
 ## 实现证据与边界
 
-- 实现提交：9ec8302（M12）、e535573（M04）、bbbff1c（M02）、9e0ea70（M13）；均已推送。
-- 本地完整 114 项：112 通过、2 项 Windows 链接权限跳过；公开扫描 0 命中、git diff --check 通过。
-- 实现 SHA 9e0ea70c6f7d8ce8090b86e9464709f05b6de66d 的 tests CI 37724325620 四组测试/扫描/分发包检查全部成功。收尾文档及后续提交应按各自 SHA 检查，不沿用这项证据。
-- 主分支仍为未发布 alpha.9 / CLI 0.1.0a9，Release 仅 alpha.1；本轮没有创建标签或 Release。#9 外部真人试用保持开放。
-- 静态权限通过不保证实际写入成功；锁存在不能判断失效；脚本与包验证不能证明 Codex 加载技能或替代真人试用。
+- 实现提交 1e3b2c4，安装包验证提交 301458a，均已推送；详细对应表见 docs/USER_FEEDBACK_20261009.md。
+- 完整本地 141 项中 138 通过、3 项 Windows 链接权限跳过；加固恢复总览内容断言后，14 项分发回归再次全部通过。公开扫描 0 命中、差异格式及技能结构检查通过。
+- 301458a94c6cf035235c6f0c0e86a731589dc2da 的安装包完成 28 个步骤；恢复原始事件和手写档案字节一致。对应 tests CI 37872448326 在 Windows/Linux × Python 3.10/3.12 四组完成测试、扫描和分发验证，全部成功。
+- 浏览器直接打开虚构本地页面：筛选、来源链接、离线加载、桌面及 390 像素窄屏通过。内部 AI 试用保存明确偏好并保留手写内容与待定问题；两者均不替代真人 Codex 对话验收。
+- 主分支仍为未发布 alpha.9 / CLI 0.1.0a9，Release 仅 alpha.1；未创建新标签或 Release。#12/#13 保留开放待试用，#9 的完整安装与跨对话结果仍待补齐。
+- 收尾文档、后续提交和发布需按自身 SHA 检查，不能沿用实现提交的包哈希或 CI。已有安装副本不会随 git pull 自动更新。
 
 ## 下一步与按需读取
 
-- 下一默认项 M03：核对届时最终提交、CI、标签和实际下载包后发布预览版；若继续开发，可优先 M05 升级预检。
-- docs/MAINTENANCE_PLAN.md、docs/RELEASE_PREPARATION.md、docs/DISTRIBUTION_VALIDATION.md。
-- doctor 相关读取 docs/DIAGNOSTICS.md、skills/research-workbench/scripts/workbench.py、tests/test_doctor.py。
-- CI/依赖读取 .github/workflows/tests.yml、.github/dependabot.yml、docs/DEPENDENCY_UPDATES.md。
-- project-workbench/CURRENT_STATUS.md 首条和 WORKLOG.md 最新条保留详细记录。
+- 优先接收 #12/#13 首版试用反馈；无新反馈时推进 M03 发布核对，开发维护可选择 M05 升级预检。
+- docs/USER_FEEDBACK_20261009.md、docs/MAINTENANCE_PLAN.md、docs/ONBOARDING.md、docs/OVERVIEW.md。
+- 发布读取 docs/RELEASE_PREPARATION.md、docs/DISTRIBUTION_VALIDATION.md、docs/USER_TRIAL.md。
+- project-workbench/CURRENT_STATUS.md 首条和 WORKLOG.md 最新条保留详细记录；原课题材料与私有参考副本不属于本轮范围。
