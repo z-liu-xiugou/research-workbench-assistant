@@ -73,6 +73,9 @@ class ArchiveTests(unittest.TestCase):
     def test_missing_cli_sibling_and_schema_each_rejected(self):
         for name in ("scripts/install.py", "skills/research-workbench/scripts/workbench.py",
                      "skills/research-workbench/scripts/literature.py",
+                     "skills/research-workbench/scripts/overview.py",
+                     "skills/research-workbench/assets/overview.html",
+                     "skills/research-workbench/references/project-manual-template.md",
                      "skills/research-workbench/references/schemas/record-v2.schema.json"):
             with self.subTest(omitted=name):
                 self.assert_refused_before_extract(self.mutate(remove=(name,)), "missing-required-files")

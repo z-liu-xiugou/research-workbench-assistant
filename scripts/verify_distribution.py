@@ -19,6 +19,8 @@ SKILL = "skills/research-workbench/"
 REQUIRED_FILES = {
     "LICENSE", "README.md", "docs/GETTING_STARTED.md", "scripts/install.py",
     SKILL + "SKILL.md", SKILL + "scripts/workbench.py", SKILL + "scripts/literature.py",
+    SKILL + "scripts/overview.py", SKILL + "assets/overview.html",
+    SKILL + "references/onboarding.md", SKILL + "references/project-manual-template.md",
     SKILL + "references/records.md", SKILL + "references/discovery.md",
     SKILL + "references/schemas/config-v1.schema.json",
     SKILL + "references/schemas/event-v2.schema.json",
@@ -198,6 +200,10 @@ def verify_distribution(repo=REPO, ref="HEAD", report=None):
         require(bool(re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:(?:a|b|rc)[0-9]+)?", version)),
                 "installed_version: invalid-version-output")
         report["version"] = version
+        installed_doctor, _ = run("installed_doctor", cli + ["doctor"], base)
+        diagnosed = read_json("installed_doctor", installed_doctor)
+        require(diagnosed.get("status") == "ok" and diagnosed.get("redacted") is True,
+                "installed_doctor: incomplete-installation")
         root = base / "虚构 工作台"
 
         def command(name, operation, selected_root=root, *arguments):
@@ -238,6 +244,15 @@ def verify_distribution(repo=REPO, ref="HEAD", report=None):
                 and isinstance(resumed.get("checkpoint"), str)
                 and record["next_step"] in resumed["checkpoint"]
                 and current_id in resumed["checkpoint"], "resume: missing-checkpoint")
+        preferences = resumed.get("project_preferences")
+        require(isinstance(preferences, dict) and preferences.get("path") == "PROJECT_MANUAL.md",
+                "resume: missing-project-preferences-entry")
+        page_report = read_json("overview", command("overview", "overview"))
+        require(page_report.get("output") == "OVERVIEW.html" and page_report.get("current_records") == 1,
+                "overview: invalid-page-report")
+        page_file = root / "OVERVIEW.html"
+        require(page_file.is_file() and current_id in page_file.read_text(encoding="utf-8"),
+                "overview: missing-current-record")
         (root / "PERSONAL_NOTES.md").write_bytes("虚构手写笔记\r\n中文与空格\r\n".encode("utf-8"))
         (root / "PROJECT_MANUAL.md").write_bytes("# 虚构约定\r\n仅用于分发验证。\r\n".encode("utf-8"))
         original = snapshot(root)
@@ -245,6 +260,8 @@ def verify_distribution(repo=REPO, ref="HEAD", report=None):
         command("backup", "backup", root, "--output", str(backup))
         restored = base / "恢复 后工作台"
         command("restore", "restore", restored, "--input", str(backup))
+        require(not (restored / "OVERVIEW.html").exists(), "restore: derived-page-included-in-backup")
+        mark("derived_page_excluded_from_backup")
         recovered = snapshot(restored)
         managed = {name for name in original if name == "config.json" or name.startswith("events/")
                    or name in ("PERSONAL_NOTES.md", "PROJECT_MANUAL.md", ".gitignore")}
@@ -263,6 +280,11 @@ def verify_distribution(repo=REPO, ref="HEAD", report=None):
                 "restored_history: output-differs")
         require(read_json("restored_resume", command("restored_resume", "resume", restored)) == resumed,
                 "restored_resume: output-differs")
+        regenerated = read_json("restored_overview", command("restored_overview", "overview", restored))
+        restored_page = restored / "OVERVIEW.html"
+        require(regenerated.get("output") == "OVERVIEW.html" and regenerated.get("current_records") == 1
+                and restored_page.is_file() and current_id in restored_page.read_text(encoding="utf-8"),
+                "restored_overview: missing-current-record")
         require(snapshot(root) == original, "restore: source-workbench-changed")
         mark("source_workbench_preserved")
     report["ok"] = True
