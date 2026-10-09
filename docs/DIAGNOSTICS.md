@@ -56,7 +56,7 @@ python -B -X utf8 .\skills\research-workbench\scripts\workbench.py doctor --skil
 | --- | --- | --- |
 | environment | PYTHON_VERSION | 当前 Python 版本是否符合 3.10+；运行平台和工具版本见 runtime |
 | environment | DOCTOR_PATH | 仅在无法定位诊断目录时报告 |
-| installation | SKILL_FILES | SKILL.md、两份脚本、记录/检索说明及三份结构定义是否存在、类型是否正确 |
+| installation | SKILL_FILES | SKILL.md、三份脚本、离线页面模板、记录/检索/入门说明、项目约定模板及三份结构定义是否存在、类型是否正确 |
 | installation | TOOL_VERSION | 静态读取目标脚本 VERSION；不执行目标程序，不验证文件哈希 |
 | installation | SKILL_LOCATION | 识别用户技能目录、项目 `.agents/skills` 或源码/自定义目录；不查询 Codex 实际加载状态 |
 | installation | SKILL_ACCESS | 技能目录的静态读取、访问和写入权限观察 |

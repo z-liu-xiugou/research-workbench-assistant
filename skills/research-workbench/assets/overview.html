@@ -1,0 +1,81 @@
+<!-- research-workbench-overview:v1 -->
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="@@CSP@@">
+<title>@@PROJECT@@ · 研究工作总览</title>
+<style>
+:root{color-scheme:light;--ink:#203c3d;--muted:#5e7474;--accent:#176b65;--line:#d4e3df;--paper:#fff;--surface:#f1f7f5}
+*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font:15px/1.65 "Microsoft YaHei","PingFang SC",system-ui,sans-serif}
+main{max-width:1280px;margin:auto;padding:38px 28px 48px}h1,h2,h3,p{margin:0}h1{font-size:30px;line-height:1.35;letter-spacing:.02em}h2{font-size:21px}h3{font-size:16px;line-height:1.5}
+a{color:var(--accent);text-underline-offset:3px;overflow-wrap:anywhere}a:hover{color:#074940}.eyebrow{color:var(--accent);font-weight:700;font-size:13px;letter-spacing:.12em}.hero{border-bottom:1px solid var(--line);padding-bottom:22px}.hero h1{margin:6px 0 8px}.hero p{color:var(--muted)}.snapshot{display:inline-block;background:#ddece7;border-radius:5px;padding:2px 8px;margin-right:8px;font-weight:600;font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0}.stat{border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:14px 18px;display:flex;align-items:baseline;gap:12px}.stat strong{font-size:28px;font-weight:650;color:var(--accent)}.stat span{font-size:13px;color:var(--muted)}
+.filters{padding:18px;border:1px solid var(--line);background:#e7f1ed;border-radius:10px;margin-bottom:24px}.filter-grid{display:grid;grid-template-columns:2fr repeat(4,1fr);gap:12px}.filters label{display:block;font-size:13px;font-weight:600}.filters input,.filters select{display:block;width:100%;margin-top:5px;border:1px solid #a9c3bb;border-radius:6px;padding:9px;background:#fff;color:var(--ink);font:inherit}.filters input:focus,.filters select:focus{outline:2px solid var(--accent);outline-offset:2px}.filters p{margin-top:10px;font-size:13px;color:var(--muted)}button{border:1px solid #9ab8ad;border-radius:5px;background:#fff;color:var(--accent);font:inherit;padding:3px 10px;margin-left:8px;cursor:pointer}
+.panel{margin-top:26px}.section-heading{margin-bottom:12px}.section-heading p{font-size:13px;margin-top:3px}.muted{color:var(--muted);font-size:13px}.card-group{min-width:0}.group-title{margin:0 0 8px;font-size:14px;color:var(--muted);font-weight:600}.group-count{display:inline-block;min-width:22px;padding:0 5px;text-align:center;border-radius:10px;background:#dceae4;margin-left:4px;color:var(--accent)}.cards{display:grid;gap:12px}.card{background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:16px 18px;min-width:0;overflow-wrap:anywhere}.card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.card-heading h3{font-weight:650}.badge{background:#edf5f1;border:1px solid #d1e5db;border-radius:5px;font-size:12px;white-space:nowrap;padding:2px 7px;color:#315b51}.body{margin:9px 0;white-space:pre-wrap}.card p+p{margin-top:6px}.metadata{color:var(--muted);font-size:13px}.next-step{border-left:3px solid var(--accent);background:#edf6f2;padding:10px 14px;margin:12px 0}.next-step strong{color:var(--accent);font-size:13px}.next-step p{margin-top:3px}.task-state{font-weight:600;color:var(--accent);font-size:13px}.task-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.task-column .card-heading{display:block}.task-column .badge{display:inline-block;margin-top:6px}.task-column .card{padding:14px}.empty{padding:15px;border:1px dashed #b9cdc5;border-radius:7px;color:var(--muted);background:#edf4f0;font-size:13px}.provenance{margin-top:12px;border-top:1px solid #e4ede8;padding-top:9px;font-size:13px}.provenance summary{cursor:pointer;color:var(--accent)}.provenance p{margin-top:6px}.evidence{padding-left:19px;margin:6px 0}.identifier{font-size:11px;overflow-wrap:anywhere;color:var(--muted)}.history{display:block;background:#fff4d8;padding:4px 7px;margin-top:4px;color:#775e29;border-radius:4px}.notice{color:#315b51;background:#edf5f1;padding:6px 9px;border-radius:4px;font-size:13px}.footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}.footer p+p{margin-top:5px}[hidden]{display:none!important}
+@media(max-width:950px){.filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.filter-grid label:first-child{grid-column:1/-1}.stats{grid-template-columns:repeat(2,1fr)}.task-board{grid-template-columns:repeat(2,minmax(0,1fr))}.card-heading{flex-wrap:wrap}}
+@media(max-width:560px){main{padding:22px 16px}.task-board,.filter-grid{grid-template-columns:1fr}.stats{gap:8px}.stat{display:block;padding:10px 12px}.stat span{display:block}.card{padding:14px}.badge{white-space:normal}h1{font-size:25px}.hero p{font-size:13px}}
+@media print{body{background:#fff}.filters{display:none}.card,.stat{break-inside:avoid}.provenance{display:block}main{padding:0}.task-board{display:block}.task-column{margin-top:14px}}
+</style>
+</head>
+<body>
+<main>
+<header class="hero"><div class="eyebrow">RESEARCH WORKBENCH</div><h1>@@PROJECT@@ · 研究工作总览</h1><p><span class="snapshot">本地快照</span>生成时间：<time>@@GENERATED@@</time>（UTC）</p><p>默认展示当前有效记录。新增或修订后，请重新生成此页；本页不判断科研结论是否正确。</p></header>
+<div class="stats" aria-label="当前记录数量">@@STATS@@</div>
+<div class="filters" role="search" aria-label="筛选总览卡片">
+<div class="filter-grid">
+<label for="query">搜索文字<input id="query" type="search" placeholder="输入中文标题、摘要、作者或依据" autocomplete="off"></label>
+<label for="scope">展示内容<select id="scope"><option value="all">全部内容</option><option value="checkpoint">当前目标</option><option value="progress">最近进展</option><option value="tasks">任务</option><option value="candidates">候选文献</option><option value="papers">文献笔记</option></select></label>
+<label for="task-state">任务执行情况<select id="task-state"><option value="all">全部执行情况</option><option value="todo">待办</option><option value="in_progress">执行中</option><option value="done">完成</option><option value="cancelled">取消</option><option value="unspecified">状态未指定</option></select></label>
+<label for="candidate-state">候选处理状态<select id="candidate-state"><option value="all">全部候选状态</option><option value="pending">待筛选</option><option value="kept">保留</option><option value="excluded">排除</option><option value="noted">已有笔记</option></select></label>
+<label for="research-status">研究确认状态<select id="research-status"><option value="all">全部研究状态</option><option value="已确认">已确认</option><option value="进行中">进行中</option><option value="计划中">计划中</option><option value="候选方案">候选方案</option><option value="待确认">待确认</option><option value="AI建议">AI建议</option><option value="未知">未知</option></select></label>
+</div><p><span id="filter-result" role="status" aria-live="polite">显示全部卡片。</span><button id="reset" type="button">清除筛选</button></p><p>多个条件同时生效。选择任务执行情况时只显示任务；选择候选状态时只显示候选。上方计数始终对应生成时的全部当前记录。</p>
+</div>
+@@CONTENT@@
+<footer class="footer"><p>页面离线可查看，不会自动联网、读取新记录或上传资料。外部证据链接只有点击后才打开。</p><p>手写内容请保存在 <a href="PERSONAL_NOTES.md">PERSONAL_NOTES.md</a>；总览是派生文件，可重新生成。完整历史：<a href="WORKLOG.md">WORKLOG.md</a>；项目约定：<a href="PROJECT_MANUAL.md">PROJECT_MANUAL.md</a>。</p><p>候选、已有笔记和读取依据各有含义；本工具没有人工阅读确认台账，也不提供论文完成百分比。</p></footer>
+</main>
+<script>
+"use strict";
+const query = document.getElementById("query");
+const scope = document.getElementById("scope");
+const taskState = document.getElementById("task-state");
+const candidateState = document.getElementById("candidate-state");
+const researchStatus = document.getElementById("research-status");
+const cards = Array.from(document.querySelectorAll("[data-card]"));
+const result = document.getElementById("filter-result");
+function filterCards() {
+  const needle = query.value.trim().toLocaleLowerCase();
+  let count = 0;
+  for (const card of cards) {
+    const match = (!needle || card.textContent.toLocaleLowerCase().includes(needle)) &&
+      (scope.value === "all" || card.dataset.card === scope.value) &&
+      (taskState.value === "all" || (card.dataset.card === "tasks" && card.dataset.state === taskState.value)) &&
+      (candidateState.value === "all" || (card.dataset.card === "candidates" && card.dataset.state === candidateState.value)) &&
+      (researchStatus.value === "all" || card.dataset.status === researchStatus.value);
+    card.hidden = !match;
+    if (match) count += 1;
+  }
+  for (const group of document.querySelectorAll("[data-group]")) {
+    const visible = Array.from(group.querySelectorAll("[data-card]")).filter(card => !card.hidden).length;
+    group.querySelector(".group-count").textContent = String(visible);
+    group.querySelector("[data-empty]").hidden = visible > 0;
+  }
+  for (const section of document.querySelectorAll("[data-scope]")) {
+    section.hidden = (scope.value !== "all" && section.dataset.scope !== scope.value) ||
+      (taskState.value !== "all" && section.dataset.scope !== "tasks") ||
+      (candidateState.value !== "all" && section.dataset.scope !== "candidates");
+  }
+  result.textContent = "匹配 " + count + " 张卡片（不是去重论文数）。";
+}
+query.addEventListener("input", filterCards);
+for (const select of [scope, taskState, candidateState, researchStatus]) select.addEventListener("change", filterCards);
+document.getElementById("reset").addEventListener("click", () => {
+  query.value = "";
+  for (const select of [scope, taskState, candidateState, researchStatus]) select.value = "all";
+  filterCards();
+});
+filterCards();
+</script>
+</body>
+</html>

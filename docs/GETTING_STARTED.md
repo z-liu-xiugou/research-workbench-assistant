@@ -1,6 +1,6 @@
 # 安装与使用
 
-本说明对应主分支 `v0.1.0-alpha.9`（CLI：`0.1.0a9`），尚未发布。2026-10-08 核对时 Release 仍为 alpha.1，下载旧发布包不会获得本页全部能力。见[发布范围与升级注意事项](RELEASE_PREPARATION.md)。
+本说明对应主分支 `v0.1.0-alpha.9`（CLI：`0.1.0a9`），尚未发布。2026-10-09 核对时 Release 仍为 alpha.1，下载旧发布包不会获得本页全部能力。见[发布范围与升级注意事项](RELEASE_PREPARATION.md)。
 
 ## 1. 安装 Skill，不复制个人研究数据
 
@@ -23,6 +23,10 @@ alpha.7 同时升级记录规则：新增事件用 v2，已确认/进行中需�
 ## 2. 在真正的研究项目中使用
 
 首次试用可按 [10 分钟验收清单](USER_TRIAL.md) 检查安装、记录、续接与恢复。
+
+初始化后的 `PROJECT_MANUAL.md` 提供可跳过的项目约定模板。你可以说“先设置输出语言和详略，其余待定”；Codex 只询问缺项，按本项目档案应用偏好。档案已纳入现有备份，不存放到技能安装目录。旧项目仍可用，不会自动重写旧档案或迁移配置。[入门引导](ONBOARDING.md)。
+
+需要统一查看当前工作时，在 Codex 中说“更新项目总览”，或运行 `python -X utf8 skills/research-workbench/scripts/workbench.py overview --root "工作台目录"`。双击该目录中的 `OVERVIEW.html`，离线搜索任务、候选和已有笔记；页面是快照，记录变化后需再次更新。[总览说明](OVERVIEW.md)。
 
 ### alpha.8 搜索升级
 

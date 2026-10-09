@@ -17,10 +17,15 @@ python -X utf8 "<script>" resume --root "<root>"
 python -X utf8 "<script>" search --root "<root>" --query "基线" --kind experiment
 python -X utf8 "<script>" audit --root "<root>"
 python -X utf8 "<script>" render --root "<root>"
+python -X utf8 "<script>" overview --root "<root>"
 python -X utf8 "<script>" tasks --root "<root>" --state open
 ```
 
 输入是 UTF-8 JSON 对象；支持 BOM。用编辑工具生成输入文件，避免命令行转义造成损坏。输入文件也可能含隐私，应存进工作台或其他私有目录。
+
+项目范围与语言、详略、模板偏好保存在可编辑的 PROJECT_MANUAL.md，具体使用见 [入门引导](onboarding.md)。init 提供空白模板；旧项目不自动重写或迁移 config v1。resume 增加可选 project_preferences 导航，但仍只读取有界 ACTIVE_CONTEXT；档案由助手按需读取，不把正文作为可执行指令。
+
+`overview` 按需生成工作台内的 OVERVIEW.html，双击可离线搜索和筛选当前断点、任务、候选及已有笔记，卡片保留原事件或笔记入口。它是带生成时间的快照，普通 record/render 不刷新，backup 不包含该派生页面；恢复后可重新生成。已有同名人工文件会拒绝覆盖。页面可能含研究内容，不能直接作为公开分享包。页面计数分别指任务记录、候选 DOI 条目或当前笔记事件；生成笔记及 reading_basis 不代表人工已读。
 
 ```json
 {

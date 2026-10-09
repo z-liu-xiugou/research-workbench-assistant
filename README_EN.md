@@ -12,7 +12,7 @@ New v2 events require locatable evidence for confirmed/in-progress records and a
 
 Tasks now support todo/in_progress/done/cancelled, independently of research certainty. Completion requires evidence. The tasks command defaults to open tasks, while TASKS.md groups all current tasks. Older tasks remain unspecified, not assumed completed. Resume uses bounded summaries and source links rather than embedding paper notes. Back up existing workbenches, then render with the updated helper.
 
-As verified on 2026-10-08, the only GitHub Release is alpha.1; this page describes the main branch. The CLI reports `0.1.0a9`, the same version in Python notation. See [release preparation and compatibility notes](docs/RELEASE_PREPARATION.md) before upgrading. A repeatable distribution-package check is now available; publication remains pending.
+As verified on 2026-10-09, the only GitHub Release is alpha.1; this page describes the main branch. The CLI reports `0.1.0a9`, the same version in Python notation. See [release preparation and compatibility notes](docs/RELEASE_PREPARATION.md) before upgrading. A repeatable distribution-package check is now available; publication remains pending.
 
 ## Install
 
@@ -81,6 +81,16 @@ python -B -X utf8 skills/research-workbench/scripts/workbench.py doctor --root d
 ```
 
 Checks the running skill copy and, optionally, workbench configuration and required paths. To inspect an installed copy, run its own script. JSON output hides personal paths by default. It does not write records, remove locks or read research content. Permission observations cannot guarantee that a later write will succeed, and a lock alone cannot prove that a process is stale. [Diagnosis codes and guidance (Chinese)](docs/DIAGNOSTICS.md).
+
+## Project preferences and offline overview
+
+Optional onboarding saves scope, language, detail level, note templates and directory mappings in the project's editable `PROJECT_MANUAL.md`. Unknown fields remain undecided; existing files are preserved, and temporary requests do not silently become permanent settings. Codex reads these text preferences as needed. The v1 configuration and historical records remain unchanged. The manual is included in existing backups and stays separate from skill installation. [Onboarding (Chinese)](docs/ONBOARDING.md).
+
+```sh
+python -X utf8 skills/research-workbench/scripts/workbench.py overview --root demo-workbench
+```
+
+Open `OVERVIEW.html` in that workbench to view a snapshot of the checkpoint, tasks, candidates and current notes. Search and status filters work locally, without a server or external assets. Cards link to source events or notes. Run the command again after adding records; ordinary recording and rendering do not refresh the snapshot. Generating notes never counts as human reading. The page may contain private project information. [Overview details (Chinese)](docs/OVERVIEW.md).
 
 Paper records now support optional authors, year, DOI, venue and tags. Duplicate current DOIs are rejected; supersedes revisions retain history. PAPER_INDEX.md lists current papers. DOI validation is local and syntactic, not an existence check. Papers without DOIs are not deduplicated.
 
