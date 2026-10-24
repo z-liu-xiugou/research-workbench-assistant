@@ -97,6 +97,18 @@ class GalleryTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "检查未通过"):
             gallery.build(self.root)
 
+    def test_recorded_segment_and_page_proof_hashes_are_checked(self):
+        segment = self.figure["segments"][0]
+        segment["asset_sha256"] = {key: gallery.digest(self.paper_dir / name)
+                                    for key, name in segment["assets"].items()}
+        self.manifest["pages"][0]["asset_sha256"] = {"proof": gallery.digest(self.paper_dir / "proof.png")}
+        self.save()
+        self.assertTrue(gallery.verify(self.root)["ok"])
+        (self.paper_dir / "segment.png").write_bytes(b"damaged segment")
+        (self.paper_dir / "proof.png").write_bytes(b"damaged proof")
+        self.assertIn("segment_asset_hash_mismatch:png", self.codes())
+        self.assertIn("page_proof_hash_mismatch", self.codes())
+
     def test_zero_figure_papers_keep_review_sources_and_proofs(self):
         self.manifest["figures"] = []
         self.manifest["extraction"].update(status="no_caption_detected_needs_review", figure_count=0)

@@ -249,10 +249,16 @@ def verify(root, scope_path=None):
                 if not isinstance(segment_assets, dict) or set(segment_assets) != {"png", "pdf"}:
                     error("invalid_segment_assets", key, fid)
                     continue
+                segment_hashes = segment.get("asset_sha256", {})
+                if not isinstance(segment_hashes, dict):
+                    error("invalid_segment_hashes", key, fid)
+                    segment_hashes = {}
                 for kind, name in segment_assets.items():
                     try:
                         if kind not in ("png", "pdf") or not asset_path(directory, name).is_file():
                             error("segment_asset_missing", key, fid)
+                        elif segment_hashes.get(kind) is not None and digest(asset_path(directory, name)) != segment_hashes[kind]:
+                            error("segment_asset_hash_mismatch:" + kind, key, fid)
                     except (OSError, ValueError):
                         error("invalid_segment_asset_path", key, fid)
             source = figure.get("source", {})
@@ -275,9 +281,18 @@ def verify(root, scope_path=None):
         if extraction.get("status") == "complete_verified" and (not figures or verified != len(figures) or not coverage.get("page_review_complete")):
             error("coverage_not_verified", key)
         for page in pages:
+            if not isinstance(page, dict):
+                error("invalid_page_proof", key)
+                continue
             try:
+                proof_hashes = page.get("asset_sha256", {})
+                if not isinstance(proof_hashes, dict):
+                    error("invalid_page_proof_hashes", key)
+                    proof_hashes = {}
                 if not asset_path(directory, page["assets"]["proof"]).is_file():
                     error("page_proof_missing", key)
+                elif proof_hashes.get("proof") is not None and digest(asset_path(directory, page["assets"]["proof"])) != proof_hashes["proof"]:
+                    error("page_proof_hash_mismatch", key)
             except (OSError, ValueError, TypeError, KeyError):
                 error("invalid_page_proof", key)
     report["ok"] = not report["errors"]

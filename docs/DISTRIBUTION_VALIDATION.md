@@ -99,3 +99,18 @@ python -X utf8 scripts/verify_distribution.py --ref HEAD
 | 远端 CI | [37872448326](https://github.com/z-liu-xiugou/research-workbench-assistant/actions/runs/37872448326)：同一 SHA 四组源码测试、公开扫描和分发包验证全部成功 |
 
 该结果不代表新 Release 已发布；具体反馈对应与真人验收边界见 [本轮反馈记录](USER_FEEDBACK_20261009.md)。
+
+
+2026-10-24 图库实现提交包（历史实现快照，后续提交需另验）：
+
+| 项目 | 实测结果 |
+| --- | --- |
+| 被测包源码 SHA | `28dfcf654ebf51a3122726d30d3a573ba7321067` |
+| 环境 / CLI | Windows / AMD64 / Python 3.10.20；`0.1.0a9` |
+| 打包产物 | 109 个 ZIP 成员、93 个文件 |
+| ZIP SHA-256 | `60a1ebc7f391c27de5374cc20b2394e7c610b121ba41cb65b8d55d0e4e6e72d6` |
+| 默认 / 可选流程 | 28 步 / 32 步全部通过；删除解包源码后运行安装副本，核对实际图像、来源、清单和页面ID |
+| 实现提交完整本地测试 | 装PDF组件178通过、4权限跳过；未装PDF组件163通过、19跳过，共182项 |
+| 远端 CI | [40070835352](https://github.com/z-liu-xiugou/research-workbench-assistant/actions/runs/40070835352)：Windows/Linux × Python 3.10/3.12 四组基础/可选测试、扫描及两种包检查均成功 |
+
+收尾时增加分段/原页校对图哈希校验回归：当前源码183项中179通过、4项Windows链接权限跳过；无PDF组件时164通过、19跳过。此处的包哈希仅属于上述28dfcf6；收尾提交的包报告保留在本地outputs/figure-validation，其远端CI以对应提交为准。上述均不能代替外部用户在Codex中完成#9。

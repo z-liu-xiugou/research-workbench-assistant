@@ -90,6 +90,8 @@ M01 将主分支版本入口统一为 alpha.9 未发布状态，不创建标签�
 - M02/M04/M12/M13 已完成；仍未创建 alpha.9 标签或 Release。M03 需重新核对届时的最终提交与 CI、发布入口及实际下载包，不能用本轮实现提交证据代替其他提交的验收。
 - 2026-10-09：#12/#13 首版功能提交 1e3b2c4、安装包验证提交 301458a；完整本地 141 项中 138 通过、3 项 Windows 链接权限跳过，加固恢复断言后 14 项分发回归重跑通过。301458a94c6cf035235c6f0c0e86a731589dc2da 的 28 步安装包流程及 [四组 CI 37872448326](https://github.com/z-liu-xiugou/research-workbench-assistant/actions/runs/37872448326) 全部成功；浏览器直接打开本地快照的筛选、来源链接和窄屏布局通过。详细记录见 [外部反馈处理](USER_FEEDBACK_20261009.md)。#9 仍待完整真人验收。
 
+2026-10-24：图库实现提交28dfcf6的[四组CI](https://github.com/z-liu-xiugou/research-workbench-assistant/actions/runs/40070835352)完成基础与可选测试、扫描、隔离分发包检查，均成功；对应实现包32步通过。收尾源码183项中179通过、4项Windows链接权限跳过；后续提交/发布仍按自身SHA核对。#9继续待完整真人验收，未创建新Release。
+
 ## M01 核对方式
 
 核对远端 Release、远端 tags、本地 tags、`git log v0.1.0-alpha.1..HEAD`、CHANGELOG、两种语言的 README、安装说明和脚本 `--version`。技能入口无独立版本字段，功能描述与实际代码一致，未增加重复版本来源；历史章节中的 alpha.7/alpha.8 保留为功能引入版本。
