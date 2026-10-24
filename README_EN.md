@@ -16,7 +16,7 @@ As verified on 2026-10-09, the only GitHub Release is alpha.1; this page describ
 
 ## Install
 
-Requires local Codex, Python 3.10+, and Git. No extra Python dependencies or API key for the helper; your Codex account and usage limits still apply.
+Requires local Codex, Python 3.10+, and Git. Core commands require no extra Python dependencies or API key; optional PDF figure extraction has a separate requirements file. Your Codex account and usage limits still apply.
 
 ```sh
 git clone https://github.com/z-liu-xiugou/research-workbench-assistant.git
@@ -40,7 +40,9 @@ $research-workbench Resume from the saved checkpoint and only load evidence rele
 
 ## Boundaries
 
-Built-in online discovery currently supports Crossref only. There is no PDF downloader/parser, other bundled search provider, Zotero integration, scheduler, interactive graph UI or multi-user collaboration. Candidates and generated notes do not imply human reading.
+Built-in online discovery currently supports Crossref only. Optional local figure processing supports caption candidates, crop corrections, cross-page images, provenance and an offline gallery. It requires separately installed PDF dependencies; core workbench commands still use only the standard library. There is no full-text downloader, OCR, automatic full-text understanding, other bundled search provider, Zotero integration, scheduler, interactive graph UI or multi-user collaboration. Candidates, generated notes and AI figure review do not imply human reading.
+
+Use `figures extract --scope scope.json --output figure-gallery`, followed by `figures verify --root figure-gallery` and `figures build --root figure-gallery`. Open the generated index.html locally to search, filter and enlarge figures. The page is a snapshot; extraction and editing use scripts and manifests. New figures need review. Back up the complete gallery and source PDFs separately from workbench records. Cropped PDFs are not redacted documents. See [figure setup and examples](docs/FIGURES.md) and [dependency notices](docs/THIRD_PARTY_NOTICES.md).
 
 Only discover sends explicit query parameters to Crossref; it does not upload local documents or workbench records. Other commands are local. Never include confidential research details in queries. Using Codex or external tools is not fully offline AI. Workbenches ignore records in Git by default; this does not protect already-tracked files or forced additions. Back up important data.
 

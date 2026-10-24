@@ -23,6 +23,8 @@ RELATIONS = ("references", "informs", "depends_on")
 KINDS = ("progress", "fact", "artifact", "task", "decision", "issue", "experiment", "material", "checkpoint", "paper", "discovery", "candidate_review")
 REVIEW_REASONS = ("checkpoint_conflict", "scope_change", "formal_deliverable", "insufficient_evidence", "explicit_audit")
 SKILL_FILES = ("SKILL.md", "scripts/workbench.py", "scripts/literature.py", "scripts/overview.py",
+               "scripts/figure_extract.py", "scripts/figure_gallery.py", "assets/figures.html",
+               "references/figures.md", "requirements-figures.txt",
                "assets/overview.html", "references/records.md", "references/discovery.md",
                "references/onboarding.md", "references/project-manual-template.md",
                "references/schemas/config-v1.schema.json", "references/schemas/event-v2.schema.json",
@@ -823,6 +825,19 @@ def main(argv=None):
     diagnostic.add_argument("--root", type=Path, help="可选工作台目录；省略时只检查环境和安装")
     diagnostic.add_argument("--skill-dir", type=Path, help="待检查技能目录；默认当前脚本所属技能")
     diagnostic.add_argument("--include-paths", action="store_true", help="仅供本地定位；输出个人路径，不宜公开")
+    figures = commands.add_parser("figures", help="可选的本地文献图片提取、归档与离线检索")
+    figure_commands = figures.add_subparsers(dest="figure_command", required=True)
+    extract_parser = figure_commands.add_parser("extract", help="从本地 PDF 提取待核验的完整图候选")
+    extract_parser.add_argument("--scope", type=Path, required=True, help="文献范围 JSON；来源路径相对该文件")
+    extract_parser.add_argument("--output", type=Path, required=True, help="独立图库目录")
+    extract_parser.add_argument("--overrides", type=Path, help="人工修正图注、裁切范围和跨页片段")
+    extract_parser.add_argument("--ids", nargs="+", help="仅处理这些文献 ID")
+    extract_parser.add_argument("--dpi", type=int, default=300)
+    extract_parser.add_argument("--skip-existing", action="store_true")
+    for operation in ("build", "verify"):
+        figure_parser = figure_commands.add_parser(operation)
+        figure_parser.add_argument("--root", type=Path, required=True, help="独立图库目录")
+        figure_parser.add_argument("--scope", type=Path, help="默认读取图库目录中的 scope.json")
     for command in ("init", "record", "resume", "render", "overview", "audit", "search", "show", "tasks", "backup", "restore", "graph", "related", "discover", "candidates", "candidate-review"):
         sub = commands.add_parser(command)
         sub.add_argument("--root", type=Path, required=True, help="工作台目录，不是技能安装目录")
@@ -867,6 +882,16 @@ def main(argv=None):
         print(encode(report))
         return report["exit_code"]
     try:
+        if args.command == "figures":
+            # PDF 依赖只在提取时加载，不影响原有记录、搜索和续接命令。
+            if args.figure_command == "extract":
+                from figure_extract import extract
+                report = extract(args.scope, args.output, args.overrides, args.ids, args.dpi, args.skip_existing)
+            else:
+                from figure_gallery import build, verify
+                report = (build if args.figure_command == "build" else verify)(args.root, args.scope)
+            print(encode(report))
+            return 0 if report.get("ok", True) else 1
         root = args.root.absolute() if args.command == "restore" else args.root.resolve()
         if args.command == "init":
             initialize(root, args.name)

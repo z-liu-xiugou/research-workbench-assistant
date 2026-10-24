@@ -12,7 +12,7 @@ python -X utf8 scripts/install.py --dest "目标项目/.agents/skills"
 
 将“目标项目”替换成真实路径。避免同时用户级和项目级安装同名 Skill。安装位置依据 [Codex 官方文档](https://learn.chatgpt.com/docs/build-skills)；本版本是本地 Skill 安装包，不是已上架插件商店的产品。
 
-若 python 不存在，先安装 Python 3.10+ 并重新打开终端；Windows 可用 `py -3` 替换命令中的 python。工具无额外 Python 依赖。
+若 python 不存在，先安装 Python 3.10+ 并重新打开终端；Windows 可用 `py -3` 替换命令中的 python。基础工作台无额外 Python 依赖；可选 PDF 图库需另装组件，见[图库说明](FIGURES.md)。
 
 更新前先备份项目工作台和技能目录；旧版没有 backup 命令时，在无写入进程的情况下复制完整工作台。Git 克隆的仓库先 `git pull --ff-only`（下载 ZIP 的用户需另取目标源码包），把已安装的旧 research-workbench 文件夹移动到**技能扫描目录之外**备份，再运行安装器。安装器拒绝自动覆盖，避免丢失本地修改。卸载只移走安装的 Skill 文件夹，项目内科研记录仍保留。不要删除整个 .agents 目录。
 

@@ -40,6 +40,12 @@ python -X utf8 scripts/verify_distribution.py --ref HEAD > distribution-report.j
 
 临时目录在运行结束后清理，包括虚构记录和备份。安装命令始终传入 `--dest`，不调用用户级默认安装。
 
+## 可选图库的安装副本检查
+
+先在单独环境安装 `skills/research-workbench/requirements-figures.txt`，再运行 `python -X utf8 scripts/verify_distribution.py --ref HEAD --figures`。该模式从同一被测提交读取虚构 PDF 生成器，删除解包源码后调用安装副本的 `figures extract/build/verify`；核对来源、资产和页面中实际出现的演示 ID，不仅检查文件存在。
+
+默认模式仍不要求 PDF 组件。CI 四组环境先运行无可选依赖的基础检查，再安装依赖、运行图库测试和 `--figures` 包检查。图像、PDF 和截图只在临时/忽略目录生成，不进入源码包。两种包检查均不替代 #9 的真人技能发现与新聊天续接。
+
 ## 回归测试与 CI
 
 只运行本项回归测试：

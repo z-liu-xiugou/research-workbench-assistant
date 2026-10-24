@@ -1,6 +1,7 @@
 """从指定 Git 提交打包，在临时目录验证分发包和安装后的基本流程。"""
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -20,6 +21,9 @@ REQUIRED_FILES = {
     "LICENSE", "README.md", "docs/GETTING_STARTED.md", "scripts/install.py",
     SKILL + "SKILL.md", SKILL + "scripts/workbench.py", SKILL + "scripts/literature.py",
     SKILL + "scripts/overview.py", SKILL + "assets/overview.html",
+    SKILL + "scripts/figure_extract.py", SKILL + "scripts/figure_gallery.py",
+    SKILL + "assets/figures.html", SKILL + "references/figures.md",
+    SKILL + "requirements-figures.txt",
     SKILL + "references/onboarding.md", SKILL + "references/project-manual-template.md",
     SKILL + "references/records.md", SKILL + "references/discovery.md",
     SKILL + "references/schemas/config-v1.schema.json",
@@ -130,7 +134,7 @@ def environment():
             "architecture": platform.machine()}
 
 
-def verify_distribution(repo=REPO, ref="HEAD", report=None):
+def verify_distribution(repo=REPO, ref="HEAD", report=None, figures=False):
     """执行真实归档和 CLI；report 可由调用者保留，以查看失败前的步骤。"""
     if report is None:
         report = {}
@@ -189,6 +193,15 @@ def verify_distribution(repo=REPO, ref="HEAD", report=None):
         require("同名" in error, "refuse_existing_install: wrong-rejection")
         require(before == snapshot(destination), "refuse_existing_install: existing-files-changed")
         mark("existing_install_preserved")
+        figure_scope = None
+        if figures:
+            # 样例生成器也从被测提交读取，不能借用尚未提交的源码。
+            fixture = extracted / "tests/figure_fixture.py"
+            require(fixture.is_file(), "figures: missing-committed-fixture")
+            fixture_spec = importlib.util.spec_from_file_location("distribution_figure_fixture", fixture)
+            fixture_module = importlib.util.module_from_spec(fixture_spec)
+            fixture_spec.loader.exec_module(fixture_module)
+            figure_scope = fixture_module.make_demo(base / "虚构 图库样例")
         # 移走解包源码再运行，证明没有依赖原 skills 目录或相邻源码文件。
         require(extracted.resolve().is_relative_to(base.resolve()) and extracted.resolve() != base.resolve(),
                 "install: source-cleanup-boundary")
@@ -287,6 +300,22 @@ def verify_distribution(repo=REPO, ref="HEAD", report=None):
                 "restored_overview: missing-current-record")
         require(snapshot(root) == original, "restore: source-workbench-changed")
         mark("source_workbench_preserved")
+        if figures:
+            gallery = base / "虚构 图库"
+            extracted_figures, _ = run("figures_extract", cli + ["figures", "extract", "--scope",
+                str(figure_scope), "--output", str(gallery)], base)
+            figure_report = read_json("figures_extract", extracted_figures)
+            require(figure_report.get("ok", True), "figures_extract: failed")
+            built, _ = run("figures_build", cli + ["figures", "build", "--root", str(gallery)], base)
+            read_json("figures_build", built)
+            verified, _ = run("figures_verify", cli + ["figures", "verify", "--root", str(gallery)], base)
+            require(read_json("figures_verify", verified).get("ok") is True,
+                    "figures_verify: invalid-archive")
+            manifest = json.loads((gallery / "gallery_manifest.json").read_text(encoding="utf-8"))
+            page_text = (gallery / "index.html").read_text(encoding="utf-8")
+            require(bool(manifest) and "DEMO-001" in page_text,
+                    "figures_build: missing-demo-content")
+            mark("installed_figures_content_verified")
     report["ok"] = True
     return report
 
@@ -294,10 +323,11 @@ def verify_distribution(repo=REPO, ref="HEAD", report=None):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ref", default="HEAD", help="要打包的已提交版本；默认 HEAD，不含未提交改动")
+    parser.add_argument("--figures", action="store_true", help="另验证可选 PDF 功能；需先安装图库依赖")
     arguments = parser.parse_args(argv)
     report = {}
     try:
-        verify_distribution(ref=arguments.ref, report=report)
+        verify_distribution(ref=arguments.ref, report=report, figures=arguments.figures)
     except (DistributionError, OSError, ValueError, KeyError, TypeError, AttributeError, IndexError) as error:
         # 原始异常可能含临时路径、用户名或私有 CLI 内容，只输出自己的规则信息。
         report["error"] = str(error) if isinstance(error, DistributionError) else "verification: unexpected-error"

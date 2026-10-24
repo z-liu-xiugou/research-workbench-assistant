@@ -28,3 +28,10 @@ jobs:
       # 从当前提交打包，运行临时安装副本，验证用户下载源码包后的流程。
       - name: Verify distribution archive and isolated installation
         run: python -X utf8 scripts/verify_distribution.py --ref HEAD
+      # 先证明核心流程不需 PDF 依赖，再验证可选图库和安装副本。
+      - name: Install optional figure dependencies
+        run: python -m pip install -r skills/research-workbench/requirements-figures.txt
+      - name: Test optional figure pipeline
+        run: python -X utf8 -m unittest discover -s tests -p "test_figure*.py" -v
+      - name: Verify installed figure tools from committed archive
+        run: python -X utf8 scripts/verify_distribution.py --ref HEAD --figures

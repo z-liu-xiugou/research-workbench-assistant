@@ -1,30 +1,26 @@
 # 当前项目断点
 
-更新时间：2026-10-09
+更新时间：2026-10-24
 
 ## 当前目标
 
-维护独立开源 research-workbench-assistant，按真实反馈完善个人科研工作台。任务入口为 docs/MAINTENANCE_PLAN.md；本轮处理 #12 项目引导与偏好、#13 离线总览。
+实施并推送用户确认的 #9 最小验收缺口整理与 M18 可选文献图库；仓库为独立 research-workbench-assistant，原课题材料不在发布范围。
 
-## 最新授权与已确认产出
+## 当前进展
 
-- 用户要求处理远端用户反馈，沿用此前维护与推送授权；M16/M17 首版已实现并推送，M15 已收到使用建议，完整真人试用仍未完成。
-- #12：新项目提供可编辑约定模板，未知留待定；引导可跳过，既有项目只补需要的内容。偏好按项目保存，长期修改留痕；范围变化先展示差异并确认，不把 AI 建议写成已定选题。
-- #13：overview 按需生成可双击离线打开的 OVERVIEW.html，显示断点、下一步、近期进展、任务、候选和笔记；支持搜索、筛选和来源跳转。默认排除被替代记录，不推断真人已读或论文完成比例。
-- 页面只是快照，常规记录与续接不自动生成；派生页面不进入备份，恢复后可重新生成。同名人工页面不被覆盖，写入受既有锁和原子替换保护。
+- #9 原试用清单和反馈模板已增补，独立提交 f7f5755；收到外部建议与完整真人验收分开登记。尚无完整外部验收记录，#9 保持开放，不能用自动化或AI自测代填。
+- 图库已本地实现：figures extract/build/verify、可选pdfplumber/pypdfium2/pypdf/Pillow、逐篇可追溯归档、完整图修正与跨页，以及离线检索页面。基础命令只需标准库，图像与源PDF不进入工作台backup，须另备份。
+- 新图待复核，人/AI核验独立于人工阅读；图源、裁切或图目改变撤回相应核验。原文和真实图片未复制到公开树。
+- 图库41项专项中40通过、1项Windows链接权限跳过；实际页面中文搜索、组合筛选、两种视图、放大/跨页/来源/零图待定位和窄屏已检查。
 
-## 实现证据与边界
+## 正在收尾
 
-- 实现提交 1e3b2c4，安装包验证提交 301458a，均已推送；详细对应表见 docs/USER_FEEDBACK_20261009.md。
-- 完整本地 141 项中 138 通过、3 项 Windows 链接权限跳过；加固恢复总览内容断言后，14 项分发回归再次全部通过。公开扫描 0 命中、差异格式及技能结构检查通过。
-- 301458a94c6cf035235c6f0c0e86a731589dc2da 的安装包完成 28 个步骤；恢复原始事件和手写档案字节一致。对应 tests CI 37872448326 在 Windows/Linux × Python 3.10/3.12 四组完成测试、扫描和分发验证，全部成功。
-- 浏览器直接打开虚构本地页面：筛选、来源链接、离线加载、桌面及 390 像素窄屏通过。内部 AI 试用保存明确偏好并保留手写内容与待定问题；两者均不替代真人 Codex 对话验收。
-- 主分支仍为未发布 alpha.9 / CLI 0.1.0a9，Release 仅 alpha.1；未创建新标签或 Release。#12/#13 保留开放待试用，#9 的完整安装与跨对话结果仍待补齐。
-- 收尾文档、后续提交和发布需按自身 SHA 检查，不能沿用实现提交的包哈希或 CI。已有安装副本不会随 git pull 自动更新。
+- 完整提交的基础/可选测试、公开扫描、分发包安装副本及远端四组CI仍需核对，不能复用旧59aa306的证明。详细运行记录放outputs/figure-validation（不提交）。
+- 完成后补充维护台账中的精确提交与CI证据；不创建标签或Release、不关闭#9/#12/#13。
+- 下一步：接收真人对话试用；另行推进M03发布核对或M05升级预检。git pull不会更新既有安装副本。
 
-## 下一步与按需读取
+## 按需入口
 
-- 优先接收 #12/#13 首版试用反馈；无新反馈时推进 M03 发布核对，开发维护可选择 M05 升级预检。
-- docs/USER_FEEDBACK_20261009.md、docs/MAINTENANCE_PLAN.md、docs/ONBOARDING.md、docs/OVERVIEW.md。
-- 发布读取 docs/RELEASE_PREPARATION.md、docs/DISTRIBUTION_VALIDATION.md、docs/USER_TRIAL.md。
-- project-workbench/CURRENT_STATUS.md 首条和 WORKLOG.md 最新条保留详细记录；原课题材料与私有参考副本不属于本轮范围。
+- docs/FIGURES.md、skills/research-workbench/references/figures.md、docs/THIRD_PARTY_NOTICES.md。
+- docs/USER_TRIAL.md、.github/ISSUE_TEMPLATE/user-trial.md、docs/DISTRIBUTION_VALIDATION.md。
+- docs/MAINTENANCE_PLAN.md、project-workbench/CURRENT_STATUS.md、WORKLOG.md最新记录。
