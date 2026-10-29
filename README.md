@@ -8,9 +8,9 @@
 
 面向研究生的本地科研记录助手，以 Codex Skill 形式使用：记录目标、进展、问题和下一步，在新对话中按需续接；文献笔记保存为 Markdown 和 JSON。
 
-> **主分支：v0.1.0-alpha.9（尚未发布的预览版）。** 已提供可安装 Skill、科研记录和 Crossref 在线文献发现，适合个人试用。尚不是全自动科研平台，也不保证 AI 内容准确。
+> **当前预览版：v0.1.0-alpha.9。** 已提供可安装 Skill、科研记录、Crossref 在线文献发现、离线总览和可选本地文献图库，适合个人试用。尚不是全自动科研平台，也不保证 AI 内容准确。
 
-2026-10-09 核对时，GitHub Release 仍为 alpha.1；本页描述主分支能力。下一版范围、兼容性变化和发布前步骤见[发布准备说明](docs/RELEASE_PREPARATION.md)。
+安装包、升级注意事项和对应提交的验证记录见 [alpha.9 Release](https://github.com/z-liu-xiugou/research-workbench-assistant/releases/tag/v0.1.0-alpha.9)。本页对应 alpha.9；alpha.2–alpha.8 是开发里程碑，累计变化见 [发布说明](docs/releases/v0.1.0-alpha.9.md)。完整独立真人 Codex 验收仍在 [#9](https://github.com/z-liu-xiugou/research-workbench-assistant/issues/9) 跟踪。
 
 新增“先搜摘要，再按需读全文”：本地检索默认最多 10 条短摘要，可按记录类型/状态筛选和翻页，再用 show 读取选定记录，避免长笔记一次占满对话。旧版 search 的输出格式有所变化，[参数与升级说明](skills/research-workbench/references/records.md)。
 
@@ -23,10 +23,12 @@
 在 PowerShell 或终端执行：
 
 ```powershell
-git clone https://github.com/z-liu-xiugou/research-workbench-assistant.git
+git clone --branch v0.1.0-alpha.9 --depth 1 https://github.com/z-liu-xiugou/research-workbench-assistant.git
 cd research-workbench-assistant
 python -X utf8 scripts/install.py
 ```
+
+也可从上面的 Release 下载 `research-workbench-assistant-v0.1.0-alpha.9.zip`，解压后在包含 `scripts` 的目录运行安装命令；ZIP 安装不需要 Git。发布页附有 SHA-256 校验文件。使用主分支的开发版本时，请单独核对提交和版本。
 
 安装器只复制 research-workbench Skill 到用户 `.agents/skills`，不会覆盖已有同名技能，不触碰其他助手。未识别时重启 Codex。也可让 `$skill-installer` 从本仓库 `skills/research-workbench` 安装，两种方式选一种。[Codex 官方技能说明](https://learn.chatgpt.com/docs/build-skills)
 

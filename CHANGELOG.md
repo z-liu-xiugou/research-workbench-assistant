@@ -1,8 +1,10 @@
 # Changelog
 
-本文中的 alpha.2–alpha.8 是开发里程碑，日期为开发记录日期，不代表已建立 GitHub Release。2026-10-09 核对时仅 alpha.1 已发布；下一预览版范围见 [发布准备说明](docs/RELEASE_PREPARATION.md)。
+本文中的 alpha.2–alpha.8 是开发里程碑，日期为开发记录日期，不代表各自建立了 GitHub Release。alpha.9 汇集 alpha.1 之后的功能与修复；安装、升级和限制见 [alpha.9 发布说明](docs/releases/v0.1.0-alpha.9.md)，资产与验证结果见 [Release](https://github.com/z-liu-xiugou/research-workbench-assistant/releases/tag/v0.1.0-alpha.9)。
 
-## Unreleased — 0.1.0-alpha.9（最后更新 2026-10-24）
+## 0.1.0-alpha.9 — 2026-10-29
+
+- 汇集此前未发布的开发里程碑，提供明确标签的源码安装包、SHA-256 校验文件及对应提交的隔离安装验证报告。基础工作台与可选图库分别验证；完整独立真人验收仍待补齐。
 
 - 2026-10-24：#9 原试用清单补充自动化覆盖矩阵、三项真人验收缺口和逐步脱敏反馈格式；外部验收仍待真实记录。
 - 新增可选 `figures extract/build/verify`：本地 PDF 完整图候选、裁切修正、跨页拼接、来源追溯与离线图片检索。中文说明由人工或 Codex 填写，结构检查与人/AI核验分开；核心保持标准库，可选后端另装并保留许可说明。
@@ -17,7 +19,7 @@
 - 新增 4 项安装失败/冲突回归；补齐 alpha.8 分页迁移说明、外部试用清单与反馈模板。
 
 - CI 改用完整提交 SHA 固定的 checkout v7.0.1、setup-python v7.0.0（Node 24），Linux 固定 Ubuntu 24.04；配置每日测试和公开文件检查。
-- 建立逐次维护清单，统一主分支版本为 alpha.9 / CLI 0.1.0a9；分发包验证后补齐可重复工具，Release 仍待单独发布。
+- 建立逐次维护清单，统一主分支版本为 alpha.9 / CLI 0.1.0a9；分发包验证补齐可重复工具。
 
 ## 0.1.0-alpha.8 — 2026-09-13
 

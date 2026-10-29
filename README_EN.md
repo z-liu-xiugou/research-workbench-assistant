@@ -4,7 +4,7 @@
 
 Keep research progress in your project after an AI conversation ends.
 
-**Main branch: v0.1.0-alpha.9 (unreleased preview)** is an early local Codex Skill with a standard-library Python helper. It supports research records, checkpoints, versioned notes, and online Crossref discovery with a separate candidate queue. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
+**Current preview: v0.1.0-alpha.9** is an early local Codex Skill with a standard-library Python helper. It supports research records, checkpoints, versioned notes, online Crossref discovery with a separate candidate queue, an offline overview, and optional local PDF figure tools. Instructions and generated views currently use Chinese; Codex can explain them in your preferred language.
 
 Local search now returns paginated summaries (10 by default), with kind/status filters and title-first ranking. Use show --id for an exact full record and its current-version status. Breaking CLI output change: search returns one JSON object with items/total/next_offset; --full returns full events for the selected page. Storage needs no migration. This reduces conversation output, not the local cost of loading/validating the event store.
 
@@ -12,17 +12,19 @@ New v2 events require locatable evidence for confirmed/in-progress records and a
 
 Tasks now support todo/in_progress/done/cancelled, independently of research certainty. Completion requires evidence. The tasks command defaults to open tasks, while TASKS.md groups all current tasks. Older tasks remain unspecified, not assumed completed. Resume uses bounded summaries and source links rather than embedding paper notes. Back up existing workbenches, then render with the updated helper.
 
-As verified on 2026-10-09, the only GitHub Release is alpha.1; this page describes the main branch. The CLI reports `0.1.0a9`, the same version in Python notation. See [release preparation and compatibility notes](docs/RELEASE_PREPARATION.md) before upgrading. A repeatable distribution-package check is now available; publication remains pending.
+Download the source package, checksums, and validation reports from the [alpha.9 Release](https://github.com/z-liu-xiugou/research-workbench-assistant/releases/tag/v0.1.0-alpha.9). The CLI reports `0.1.0a9`, the same version in Python notation. See the [release and compatibility notes](docs/releases/v0.1.0-alpha.9.md) before upgrading. Alpha.2–alpha.8 were development milestones. Full independent human Codex acceptance remains open in [#9](https://github.com/z-liu-xiugou/research-workbench-assistant/issues/9); automated checks are tracked separately.
 
 ## Install
 
 Requires local Codex, Python 3.10+, and Git. Core commands require no extra Python dependencies or API key; optional PDF figure extraction has a separate requirements file. Your Codex account and usage limits still apply.
 
 ```sh
-git clone https://github.com/z-liu-xiugou/research-workbench-assistant.git
+git clone --branch v0.1.0-alpha.9 --depth 1 https://github.com/z-liu-xiugou/research-workbench-assistant.git
 cd research-workbench-assistant
 python -X utf8 scripts/install.py
 ```
+
+Alternatively, download `research-workbench-assistant-v0.1.0-alpha.9.zip` from the Release, extract it, and run the install command from the directory containing `scripts`. Git is not required for ZIP installation. SHA-256 checksums accompany the assets. Check the commit separately if you use the development branch.
 
 Installs only research-workbench into your user .agents/skills directory and refuses to overwrite existing skills. For project-local installation, pass --dest /path/to/project/.agents/skills. Restart Codex if discovery does not refresh. See [official documentation](https://learn.chatgpt.com/docs/build-skills).
 

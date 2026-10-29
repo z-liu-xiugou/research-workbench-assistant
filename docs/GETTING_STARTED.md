@@ -1,6 +1,6 @@
 # 安装与使用
 
-本说明对应主分支 `v0.1.0-alpha.9`（CLI：`0.1.0a9`），尚未发布。2026-10-09 核对时 Release 仍为 alpha.1，下载旧发布包不会获得本页全部能力。见[发布范围与升级注意事项](RELEASE_PREPARATION.md)。
+本说明对应预览版 `v0.1.0-alpha.9`（CLI：`0.1.0a9`）。请从 [alpha.9 Release](https://github.com/z-liu-xiugou/research-workbench-assistant/releases/tag/v0.1.0-alpha.9) 获取源码 ZIP、校验文件和验证报告，或克隆该版本标签；旧 alpha.1 包不含全部能力。见[发布范围与升级注意事项](releases/v0.1.0-alpha.9.md)。
 
 ## 1. 安装 Skill，不复制个人研究数据
 
