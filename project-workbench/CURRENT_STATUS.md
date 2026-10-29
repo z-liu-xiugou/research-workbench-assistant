@@ -2,11 +2,12 @@
 
 更新时间：2026-10-29
 
-## 2026-10-29｜M03 发布核对
+## 2026-10-29｜M03 已发布 alpha.9
 
 - 已确认：用户授权发布与当前功能对应的 alpha.9 预览版，完成后准备 Codex for Open Source 申请。
-- 进行中：同步中英文版本入口与发布说明；对最终提交分别验证基础工作台、可选图库和源码安装包，再核对远端 CI、标签及实际下载。
-- 边界：当前发布准备不等于 Release 已完成；#9/#12/#13 保持开放，完整真人验收不由自动测试代替。申请所需个人信息不写入公开仓库。
+- 已确认：[alpha.9 Release](https://github.com/z-liu-xiugou/research-workbench-assistant/releases/tag/v0.1.0-alpha.9) 已公开，标为预览版；标签准确指向 bfd6e097a8548f0f1dda2af23d33a3f77651daf4，CLI 0.1.0a9。中英文版本入口、累计说明、安装与升级文档已同步。
+- 已确认：发布提交四组 [CI 40854871236](https://github.com/z-liu-xiugou/research-workbench-assistant/actions/runs/40854871236) 全成功；基础 28 步和图库 32 步隔离验证通过。发布资产含源码 ZIP、SHA256SUMS 和两份报告，下载后的哈希一致；安装副本版本核对正确，见 [发布验收](../docs/RELEASE_VALIDATION_ALPHA9.md)。
+- 边界：#9/#12/#13 保持开放，完整真人验收不由自动测试代替。后续接收试用反馈或推进 M05；申请材料与个人信息不写入公开仓库，申请提交状态不由本次发布推定。
 
 下方为历史记录。
 
